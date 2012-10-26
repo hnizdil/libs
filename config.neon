@@ -1,0 +1,180 @@
+parameters:
+
+	templateDir: %appDir%/templates
+
+	develEmail:
+
+	doctrine:
+		entityDir: %appDir%/models/Entity
+		proxyDir: %appDir%/models/Proxy
+		autogenerateProxyClasses: false
+		classMetadataFactoryName: Hnizdil\Doctrine\ORM\Mapping\ClassMetadataFactory
+		dataTypes:
+			money: Hnizdil\DBAL\MoneyType
+			file: Hnizdil\DBAL\FileType
+			url: Hnizdil\DBAL\UrlType
+			email: Hnizdil\DBAL\EmailType
+			password: Hnizdil\DBAL\PasswordType
+
+php:
+
+	date.timezone: Europe/Prague
+
+nette:
+
+	session:
+		autoStart: smart
+
+	forms:
+		messages:
+			URL: 'Položka „%label“ není platná WWW adresa'
+			EMAIL: 'Položka „%label“ není platná e-mailová adresa'
+			IMAGE: 'Nahraný soubor „%label“ musí být JPG, PNG nebo GIF obrázek'
+			FILLED: 'Položka „%label“ musí být vyplněna'
+			LENGTH: 'Položka „%label“ musí být dlouhá přesně %d znaků'
+			INTEGER: 'Položka „%label“ musí být číslo'
+			MAX_LENGTH: 'Položka „%label“ nesmí být delší než %d znaků'
+
+services:
+
+	#nette.userStorage:
+		#class: Hnizdil\Nette\Http\UserStorage
+
+	#session:
+		#setup:
+			#- setStorage(@mySqlSessionStorage)
+
+	hnizdilCache:
+		factory: @nette.cache(Hnizdil)
+
+	em:
+		factory: Hnizdil\Doctrine\EntityManagerFactory::create(
+			@doctrineCache(Metadata)
+			@doctrineCache(Queries)
+			@eventManager
+			@annotationDriver
+			%doctrine.proxyDir%
+			Hnizdil\Proxy
+			%database%
+			%doctrine.autogenerateProxyClasses%
+			%doctrine.classMetadataFactoryName%
+			%productionMode%
+		)
+
+	annotationDriver:
+		factory: Hnizdil\Doctrine\ORM\Mapping\Driver\AnnotationDriver(
+			@annotationReader
+			%doctrine.entityDir%
+		)
+
+	annotationReader:
+		factory: Hnizdil\Doctrine\AnnotationReaderFactory::create(
+			%libsDir%
+			@doctrineCache(Annotations)
+		)
+
+	eventManager:
+		class: Doctrine\Common\EventManager
+		setup:
+			- addEventSubscriber(@uploadRemoveEventSubscriber)
+
+	uploadRemoveEventSubscriber:
+		class: Hnizdil\Doctrine\UploadRemoveEventSubscriber
+		arguments:
+			- @container # jen kvůli parameters
+
+	mySqlSessionStorage:
+		class: Hnizdil\Nette\Http\MySqlSessionStorage
+		arguments:
+			- %database.host%
+			- %database.user%
+			- %database.password%
+			- %database.dbname%
+
+	noTranslator:
+		class: Hnizdil\Nette\Localization\NoTranslator
+
+	translatorFactory:
+		class: Hnizdil\Factory\TranslatorFactory(%libsDir%/Hnizdil/Locale)
+
+	templateFactory:
+		class: Hnizdil\Factory\TemplateFactory(
+			@application::getPresenter()
+			%appDir%
+			%templateDir%
+		)
+
+	wwwPathGetter:
+		class: Hnizdil\Service\WwwPathGetter
+		arguments:
+			- %wwwDir%
+
+	businessDate:
+		class: Hnizdil\Service\BusinessDate
+		arguments:
+			- @hnizdilCache::derive(BusinessDate)
+
+	entityFormFactory:
+		class: Hnizdil\Factory\EntityFormFactory
+		arguments:
+			- @container # jen kvůli parameters
+			- @em
+			- @translatorFactory
+			- @entityFactory
+			- @wwwPathGetter
+
+	entityFactory:
+		class: Hnizdil\Factory\EntityFactory
+
+	doctrineModelFactory:
+		class: Hnizdil\Gridito\DoctrineModelFactory
+		arguments:
+			- @em
+			- @doctrineQueryBuilderModelFactory
+
+	doctrineQueryBuilderModelFactory:
+		class: Hnizdil\Gridito\DoctrineQueryBuilderModelFactory
+
+factories:
+
+	doctrineCache:
+		parameters: [namespace]
+		class: Hnizdil\Doctrine\Cache(
+			@nette.cache(Doctrine)
+			%namespace%
+		)
+
+	grid:
+		parameters: [entityClassName]
+		class: Hnizdil\Gridito\Grid(
+			@container
+			@em
+			@griditoModel(%entityClassName%)
+			@translatorFactory
+			@noTranslator
+			%entityClassName%
+		)
+
+	entityForm:
+		factory:
+			@entityFormFactory::create
+		parameters:
+			- entity
+			callbacks: []
+		arguments:
+			- %entity%
+			- %callbacks%
+
+	griditoModel:
+		factory: @doctrineModelFactory::create
+		parameters:
+			- entityClassName
+		arguments:
+			- %entityClassName%
+
+	template:
+		parameters: [relativePath: null]
+		factory: @templateFactory::create(
+			@nette.template
+			%relativePath%
+		)

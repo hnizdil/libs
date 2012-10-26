@@ -1,0 +1,42 @@
+{var $date = $currentDate->modify('first day of this month')}
+{var $monthNumber = $date->format('n')}
+
+<div class="calendar">
+
+	<div class="month">
+		<a n:href="prev">«</a>
+		{strftime('%B %Y', $date->getTimestamp())|ucfirst}
+		<a n:href="next">»</a>
+	</div>
+
+	<div class="header">
+		{var $dayDate = clone $currentDate}
+		{?$dayDate->modify('next sunday')}
+		<div n:for="$i = 0; $i < 7; $i++">
+			{strftime('%A', $dayDate->modify('next day')->getTimestamp())|ucfirst}
+		</div>
+	</div>
+
+	<div class="days">
+
+		<div class="blank" n:for="$i = 1; $i < $date->format('N'); $i++">
+		</div>
+
+		<div n:while="$date->format('n') == $monthNumber">
+			<div class="date">
+				{$date->format('j. n.')}
+			</div>
+			<ul n:if="isset($events[$day = $date->format('j')])">
+				<li n:foreach="$events[$day] as $event">
+					{$event}
+				</li>
+			</ul>
+			{?$date->modify('next day')}
+		</div>
+
+		<div class="blank" n:for="$i = $date->format('N') - 1; $i < 7; $i++">
+		</div>
+
+	</div>
+
+</div>

@@ -1,0 +1,98 @@
+{block #form}
+{? Nette\Latte\Macros\FormMacros::renderFormBegin($_form = $form, array('class' => 'form-horizontal'))}
+
+{* errors *}
+{block #formErrors}
+    <div n:foreach="$form->errors as $error" class="alert alert-error">{$error}<a class="close" data-dismiss="alert">×</a></div>
+{/block}
+
+{* controls with group *}
+<fieldset n:foreach="$form->groups as $group" n:if="$group->controls && $group->getOption('visual')" n:block="#formGroup">
+    <legend n:ifset="$group->options['label']">{$group->options['label']}</legend>
+    <p n:ifset="$group->options['description']">{$group->options['description']}</p>
+
+    {block #controls}
+    <div n:foreach="$group->controls as $control"
+         n:if="!$control->getOption('rendered')"
+         n:class="$control->getOption('required')? required, control-group, $control->errors? error">
+        {continueIf $control instanceof Nette\Forms\ISubmitterControl}
+
+        {var $name = $control->lookupPath('Nette\Forms\Form'), $controlName => 'control-' . $name}
+        {capture $description}
+            <p class="help-block" n:if="$desc = $control->getOption('description')">{$desc}</p>
+        {/capture}
+
+        {capture $error}
+            {var $controlErrors = $control->errors}
+            <p class="help-inline" n:if="$error = reset($controlErrors)">{$error}</p>
+        {/capture}
+
+        {ifset #$controlName}
+            {include #$controlName,
+                control => $control, name => $name,
+                form => $form, _form => $_form,
+                error => $error, description => $description}
+        {else}
+            {if $control instanceof Nette\Forms\Controls\Button}
+                {block #buttonControl}
+                    <div class="controls">
+                        {input $name, class => 'btn'}
+                        {!$error}
+                        {!$description}
+                    </div>
+                {/block}
+            {elseif $control instanceof Nette\Forms\Controls\Checkbox}
+                {block #checkboxControl}
+                    <div class="controls">
+                        {label $name, class => 'checkbox'}{input $name}{$control->label->getText()}{/label}
+                        {!$error}
+                        {!$description}
+                    </div>
+                {/block}
+            {elseif $control instanceof Nette\Forms\Controls\RadioList}
+                {block #radioListControl}
+                    {label $name, class => 'control-label' /}
+                    <div class="controls">
+                        {block #radioListItems}
+                            {foreach $control->items as $key => $value}
+                                {var $html = $control->getControl($key), $input = $html[0], $label = $html[1]}
+                                {!$label->class('radio')->startTag()}{$input}{$label->getText()}{!$label->class('radio')->endTag()}
+                            {/foreach}
+                        {/block}
+                        {!$error}
+                        {!$description}
+                    </div>
+                {/block}
+            {else}
+                {block #control}
+                {label $name, class => 'control-label' /}
+                <div class="controls">
+                    {input $name}
+                    {!$error}
+                    {!$description}
+                </div>
+                {/block}
+            {/if}
+        {/ifset}
+
+    </div>
+    {/block}
+</fieldset>
+
+{* controls without group *}
+{include #controls, group => $form}
+
+<div class="form-actions" n:inner-foreach="$form->getComponents(TRUE, 'Nette\Forms\ISubmitterControl') as $control">
+    {var $name = $control->lookupPath('Nette\Forms\Form'), $controlName = 'control-' . $name}
+
+    {ifset #$controlName}
+        {include #$controlName, control => $control, name => $name, form => $form, _form => $_form}
+    {else}
+        {input $name, class => 'btn'}
+    {/ifset}
+</div>
+
+
+{* end renders hidden inputs *}
+{? Nette\Latte\Macros\FormMacros::renderFormEnd($_form)}
+{/block}

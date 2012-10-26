@@ -1,0 +1,65 @@
+.tree-select li {
+  padding: 2px 0; }
+.tree-select span.add,
+.tree-select span.remove,
+.tree-select span.added {
+  float: right;
+  color: blue;
+  cursor: pointer;
+  margin-right: 8px;
+  text-decoration: underline; }
+.tree-select span.added {
+  color: gray;
+  display: none; }
+.tree-select ul {
+  margin: 0;
+  padding: 0;
+  list-style-type: none; }
+  .tree-select ul.tree, .tree-select ul.added {
+    border: 1px solid grey;
+    display: inline-block;
+    width: 30%;
+    margin: 12px 0;
+    height: 150px;
+    font-size: 85%;
+    overflow: auto;
+    vertical-align: top;
+    line-height: 16px;
+    background-color: white;
+    padding: 8px; }
+  .tree-select ul.tree li li {
+    margin-left: 16px; }
+  .tree-select ul.tree li span.item {
+    margin: -2px 0;
+    padding: 2px 0;
+    display: block; }
+    .tree-select ul.tree li span.item:hover {
+      background-color: lightGray; }
+    .tree-select ul.tree li span.item:before {
+      width: 16px;
+      content: "\0020";
+      text-align: center;
+      display: inline-block;
+      font-family: monospace; }
+  .tree-select ul.tree li.has-children > span.item {
+    cursor: s-resize; }
+    .tree-select ul.tree li.has-children > span.item:before {
+      content: "+"; }
+  .tree-select ul.tree li.has-children.opened > span.item {
+    cursor: n-resize; }
+    .tree-select ul.tree li.has-children.opened > span.item:before {
+      content: "\2212"; }
+  .tree-select ul.tree li.has-children.opened > ul {
+    display: block; }
+  .tree-select ul.tree li.has-children ul {
+    display: none; }
+  .tree-select ul.tree li.added > span.item > span.add {
+    display: none; }
+  .tree-select ul.tree li.added > span.item > span.added {
+    display: inline; }
+  .tree-select ul.added {
+    margin-left: 10px; }
+    .tree-select ul.added li {
+      padding-left: 8px; }
+      .tree-select ul.added li:hover {
+        background-color: lightGray; }

@@ -1,0 +1,111 @@
+{layout $control->presenter->context->params['libsDir'] . '/Gridito/templates/grid.phtml'}
+
+{block #grid}
+	{include #flashes}
+	<div class="box">
+		{if isset($filterForm)}
+			{control $filterForm}
+		{/if}
+		{form gridForm}
+		<div class="box-head">
+			<h2 class="left">{$title}</h2>
+			<div class="right" n:if="$control->hasToolbar() || $control->hasCheckboxes()">
+				{if $control->hasCheckboxes() && $control->getModel()->count() > 0}
+					{input multi_delete class => "button"}
+				{/if}
+				{foreach $control['toolbar']->getComponents() as $button}
+					<span class="button">
+					{control $button}
+					</span>
+				{/foreach}
+			</div>
+		</div>
+		<div class="table">
+			{include #data}
+		</div>
+		{/form}
+		{include #paginator}
+	</div>
+{/block}
+
+{block tableheader}
+<th class="select-col" n:if="$control->hasCheckboxes()">
+	<input type="checkbox" title="Invertovat výběr" />
+</th>
+<th n:foreach="$control['columns']->getComponents() as $column" n:class="$column->getCellClass($iterator, item)">
+	{block tableheadercontent}
+		{if $column->isSortable()}
+			{if $column->getSorting() === NULL}
+				<a n:href="sort! $column->getName(), Gridito\Model\IModel::ASC">
+					{$column->getLabel()}
+				</a>
+			{elseif $column->getSorting() === Gridito\Model\IModel::ASC}
+				<a n:href="sort! $column->getName(), Gridito\Model\IModel::DESC">
+					{$column->getLabel()} ▲
+				</a>
+			{elseif $control->defaultSortColumn === $column->getName()}
+				<a n:href="sort! $column->getName(), Gridito\Model\IModel::ASC">
+					{$column->getLabel()} ▼
+				</a>
+			{else}
+				<a n:href="sort! NULL, NULL">
+					{$column->getLabel()} ▼
+				</a>
+			{/if}
+		{else}
+			{$column->getLabel()}
+		{/if}
+	{/block}
+</th>
+<th class="gridito-actioncell" n:if="$control->hasActions()">{_'Akce'}</th>
+{/block}
+
+{block tablebody}
+<tr n:foreach="$control->getModel()->getItems() as $item" n:class="$control->getRowClass($iterator, $item)">
+	<td n:if="$control->hasCheckboxes()">
+		{$control->getCheckbox()}
+	</td>
+	<td n:class="gridito-cell, $column->getCellClass($iterator, item), $control->isColumnHighlighted($column) ? ui-state-highlight" n:foreach="$control['columns']->getComponents() as $column">
+		{control $column:cell $item}
+	</td>
+	<td class="gridito-actioncell" n:if="$control->hasActions()" n:inner-foreach="$control['actions']->getComponents() as $button">
+		{control $button $item}
+	</td>
+</tr>
+{/block}
+
+{define #paginator}
+{var $paginator = $control->getPaginator()}
+<div class="pagging">
+	<div class="left">
+		{if $paginator->getLength() > 0}
+			{_'Zobrazeno %d–%d z %d',
+				$paginator->getOffset() + 1,
+				$paginator->getOffset() + $paginator->getLength(),
+				$paginator->getItemCount()}
+		{else}
+			{_'Žádné položky'}
+		{/if}
+	</div>
+	{if $paginator->pageCount > 1 || $itemsPerPage > 10}
+		{_'Zobrazit'}
+		<select onchange="window.location=$(this).val();" onfocus="this.onmousewheel=function(){ return false};">
+			<option n:attr="selected => $itemsPerPage == 10" value="{link setItemsPerPage!, 10}">10</option>
+			<option n:attr="selected => $itemsPerPage == 20" value="{link setItemsPerPage!, 20}">20</option>
+			<option n:attr="selected => $itemsPerPage == 50" value="{link setItemsPerPage!, 50}">50</option>
+			<option n:attr="selected => $itemsPerPage == 100" value="{link setItemsPerPage!, 100}">100</option>
+		</select>
+		{_'položek'}
+	{/if}
+	<div class="right" n:if="$paginator->pageCount > 1">
+		<a n:href="changePage! $paginator->page - 1" n:if="!$paginator->isFirst()" n:class="$control->getAjaxClass()">{_'Předchozí'}</a>
+		{foreach $paginationSteps as $page}
+			<a n:href="changePage! $page" n:class="$control->getAjaxClass(), $paginator->page == $page ? active">{$page}</a>
+			{if $iterator->nextValue > $page + 1}
+				<span>…</span>
+			{/if}
+		{/foreach}
+		<a n:href="changePage! $paginator->page + 1" n:if="!$paginator->isLast()" n:class="$control->getAjaxClass()">{_'Následující'}</a>
+	</div>
+</div>
+{/define}

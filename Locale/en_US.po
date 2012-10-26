@@ -1,0 +1,36 @@
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4 ? 1 : 2);\n"
+
+msgid "Uložit"
+msgstr "Save"
+
+msgid "Odstranit"
+msgstr "Remove"
+
+msgid "Zobrazeno %d–%d z %d"
+msgstr "Displaying %d–%d of %d"
+
+msgid "Žádné položky"
+msgstr "Nothing to display"
+
+msgid "Zobrazit"
+msgstr "Show"
+
+msgid "položek"
+msgstr "items"
+
+msgid "Předchozí"
+msgstr "Previous"
+
+msgid "Následující"
+msgstr "Next"
+
+msgid "Editovat"
+msgstr "Edit"
+
+msgid "Smazat označené"
+msgstr "Delete selected"

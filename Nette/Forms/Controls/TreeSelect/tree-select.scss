@@ -1,0 +1,100 @@
+.tree-select {
+	li {
+		padding: 2px 0;
+	}
+	span.add,
+	span.remove,
+	span.added {
+		float: right;
+		color: blue;
+		cursor: pointer;
+		margin-right: 8px;
+		text-decoration: underline;
+	}
+	span.added {
+		color: gray;
+		display: none;
+	}
+	ul {
+		margin: 0;
+		padding: 0;
+		list-style-type: none;
+		&.tree,
+		&.added {
+			border: 1px solid grey;
+			display: inline-block;
+			width: 30%;
+			margin: 12px 0;
+			height: 150px;
+			font-size: 85%;
+			overflow: auto;
+			vertical-align: top;
+			line-height: 16px;
+			background-color: white;
+			padding: 8px;
+		}
+		&.tree {
+			li {
+				li {
+					margin-left: 16px;
+				}
+				span.item {
+					margin: -2px 0;
+					padding: 2px 0;
+					display: block;
+					&:hover {
+						background-color: lightGray;
+					}
+					&:before {
+						width: 16px;
+						content: "\0020";
+						text-align: center;
+						display: inline-block;
+						font-family: monospace;
+					}
+				}
+				&.has-children {
+					& > span.item {
+						cursor: s-resize;
+						&:before {
+							content: "+";
+						}
+					}
+					&.opened {
+						& > span.item {
+							cursor: n-resize;
+							&:before {
+								content: "\2212";
+							}
+						}
+						& > ul {
+							display: block;
+						}
+					}
+					ul {
+						display: none;
+					}
+				}
+				&.added {
+					& > span.item {
+						& > span.add {
+							display: none;
+						}
+						& > span.added {
+							display: inline;
+						}
+					}
+				}
+			}
+		}
+		&.added {
+			margin-left: 10px;
+			li {
+				padding-left: 8px;
+				&:hover {
+					background-color: lightGray;
+				}
+			}
+		}
+	}
+}

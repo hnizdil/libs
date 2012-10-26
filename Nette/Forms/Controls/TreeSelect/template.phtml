@@ -1,0 +1,20 @@
+<div class="tree-select">
+	<ul class="tree">
+		<li n:block="treeItem"
+			n:class="$item->getAdded() ? added, $item->hasChildren() ? has-children"
+			data-id="{$item->getId()}"
+			data-aloneName="{$item->getAloneName()}">
+			<span class="item">
+				<span class="add">přidat</span>
+				<span class="added">přidáno</span>
+				{$item->getInTreeName()}
+			</span>
+			<ul n:if="$item->hasChildren()"
+				n:inner-foreach="$item->getChildren() as $child">
+				{include #treeItem item => $child}
+			</ul>
+		</li>
+			</ul><ul class="added">
+	</ul>
+	{$control->type('hidden')->value('[]')}
+</div>
