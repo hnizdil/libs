@@ -54,6 +54,16 @@ abstract class AbstractEntity
 
 	}
 
+	protected function addIfNotContained($property, $entity) {
+
+		$this->checkIfPropertyExists($property);
+
+		if (!$this->$property->contains($entity)) {
+			$this->$property->add($entity);
+		}
+
+	}
+
 	private function checkIfPropertyExists($property) {
 
 		if (!property_exists($this, $property)) {
