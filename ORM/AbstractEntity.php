@@ -2,7 +2,6 @@
 
 namespace Hnizdil\ORM;
 
-use Exception;
 use Hnizdil\ORM\AbstractEntityException as e;
 
 abstract class AbstractEntity
@@ -17,8 +16,7 @@ abstract class AbstractEntity
 			return $this->$method();
 		}
 		else {
-			$fullName = get_class($this) . '::$' . $name;
-			throw new \Exception("Property '{$fullName}' does not exist");
+			e::missingProperty($this, $name);
 		}
 
 	}
@@ -40,52 +38,27 @@ abstract class AbstractEntity
 
 	}
 
-	public function setNullableString($property, $value) {
+	protected function setNullableString($property, $value) {
 
-		if (!property_exists($this, $property)) {
-			e::missingProperty($this, $property);
-		}
+		$this->checkIfPropertyExists($property);
 
 		$this->$property = $value === '' ? NULL : (string)$value;
 
 	}
 
-	public function setNullableInteger($property, $value) {
+	protected function setNullableInteger($property, $value) {
 
-		if (!property_exists($this, $property)) {
-			e::missingProperty($this, $property);
-		}
+		$this->checkIfPropertyExists($property);
 
 		$this->$property = ctype_digit($value) ? (int)$value : NULL;
 
 	}
 
-}
+	private function checkIfPropertyExists($property) {
 
-class AbstractEntityException
-	extends Exception
-{
-
-	const MISSING_ID_FIELD = 1;
-
-	const MISSING_PROPERTY = 2;
-
-	public static function missingIdField($method, $entity) {
-
-		$className = get_class($entity);
-		$message = "Entity '{$className}' is missing ID field. "
-			. "Method '{$method}' should probably be overloaded.";
-
-		throw new self($message, self::MISSING_ID_FIELD);
-
-	}
-
-	public static function missingProperty($entity, $property) {
-
-		$className = get_class($entity);
-		$message = "Entity '{$className}' has no property '{$property}'.";
-
-		throw new self($message, self::MISSING_PROPERTY);
+		if (!property_exists($this, $property)) {
+			e::missingProperty($this, $property);
+		}
 
 	}
 
