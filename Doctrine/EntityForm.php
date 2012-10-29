@@ -2,7 +2,6 @@
 
 namespace Hnizdil\Doctrine;
 
-use Exception;
 use Hnizdil\Doctrine\EntityFormException as e;
 use Hnizdil\ORM\AbstractEntity;
 // Dočasně zrušeno kvůli ShipitoSpace
@@ -94,22 +93,6 @@ class EntityForm
 		// callback nebyl nastaven
 		else {
 		}
-
-	}
-
-}
-
-class EntityFormException
-	extends Exception
-{
-
-	const CALLBACK_NOT_CALLABLE = 1;
-
-	public static function callbackNotCallable($callbackName) {
-
-		$message = "Callback '{$callbackName}' is not callable.";
-
-		throw new self($message, self::CALLBACK_NOT_CALLABLE);
 
 	}
 

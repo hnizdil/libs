@@ -3,7 +3,6 @@
 namespace Hnizdil\Service;
 
 use DateTime;
-use Exception;
 use Nette\Caching\Cache;
 use Hnizdil\Service\BusinessDate\BusinessDateException as e;
 
@@ -93,22 +92,6 @@ class BusinessDate
 		$this->cache->save(self::CACHE_KEY, $holidays);
 
 		return $holidays;
-
-	}
-
-}
-
-class BusinessDateException
-	extends Exception
-{
-
-	const NOT_FOUND_OR_NOT_READABLE = 1;
-
-	public static function notFoundOrNotReadable($path) {
-
-		$message = "File '{$path}' could not be found or is not readable.";
-
-		throw new self($message, self::NOT_FOUND_OR_NOT_READABLE);
 
 	}
 

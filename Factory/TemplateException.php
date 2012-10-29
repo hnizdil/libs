@@ -2,4 +2,10 @@
 
 namespace Hnizdil\Factory;
 
-class TemplateException extends \Exception {}
+use Exception;
+
+class TemplateException
+	extends Exception
+{
+
+}
