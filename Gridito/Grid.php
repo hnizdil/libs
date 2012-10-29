@@ -2,17 +2,18 @@
 
 namespace Hnizdil\Gridito;
 
-use Hnizdil\ORM\AbstractEntity,
-	Doctrine\ORM\Mapping\ClassMetadataInfo,
-	Hnizdil\Gridito\FilterForm,
-	Hnizdil\Factory\TranslatorFactory,
-	Hnizdil\Nette\Localization\NoTranslator,
-	Nette\DI\IContainer,
-	Nette\Application\UI\Form,
-	Nette\Forms\Controls\SubmitButton,
-	Doctrine\Common\Persistence\ObjectManager,
-	Gridito\Model\AbstractModel,
-	Gridito\Column;
+use Hnizdil\ORM\AbstractEntity;
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Hnizdil\Gridito\FilterForm;
+use Hnizdil\Factory\TranslatorFactory;
+use Hnizdil\Nette\Localization\NoTranslator;
+use Nette\Utils\Html;
+use Nette\DI\IContainer;
+use Nette\Application\UI\Form;
+use Nette\Forms\Controls\SubmitButton;
+use Doctrine\Common\Persistence\ObjectManager;
+use Gridito\Model\AbstractModel;
+use Gridito\Column;
 
 class Grid
 	extends \Gridito\Grid
@@ -43,6 +44,8 @@ class Grid
 	private $beforeRemove;
 
 	private $keyParam = 'id';
+
+	private $multiActions = array();
 
 	/**
 	 * udržuje reference na vygenerované checkboxy
@@ -201,7 +204,7 @@ class Grid
 		elseif ($value instanceof AbstractEntity) {
 			$nameMethod = @$gridMeta['useShortName']
 				? 'getEntityShortName' : 'getEntityName';
-			$value = $this->container->em
+			$value = $this->em
 				->getClassMetadata(get_class($value))
 				->$nameMethod($value);
 		}
@@ -213,8 +216,7 @@ class Grid
 				$this->keyParam =>
 					$this->classMeta->getIdentifierValues($entity),
 			));
-			$display = \Nette\Utils\Html::el('a')
-				->href($link)->setText($display);
+			$display = Html::el('a')->href($link)->setText($display);
 		}
 
 		echo $display;
@@ -269,9 +271,18 @@ class Grid
 
 	}
 
+	public function getMultiActionNames() {
+
+		return array_merge(
+			$this->classMeta->gridMultiActions,
+			array_keys($this->multiActions)
+		);
+
+	}
+
 	public function hasCheckboxes() {
 
-		return !empty($this->classMeta->gridMultiActions);
+		return (bool) $this->getMultiActionNames();
 
 	}
 
@@ -294,8 +305,16 @@ class Grid
 
 		// multismazání označených položek
 		if ($this->classMeta->hasGridMultiActionDelete()) {
-			$form->addSubmit('multi_delete', $this->translator->translate('Smazat označené'))
+			$label = $this->translator->translate('Smazat označené');
+			$form->addSubmit('multi_delete', $label)
 				->onClick[] = array($this, 'multiDelete');
+		}
+
+		// ručně přidané multiakce
+		foreach ($this->multiActions as $name => $params) {
+			$label = $this->translator->translate($params['label']);
+			$form->addSubmit("multi_{$name}", $label)
+				->onClick[] = array($this, 'multiAction');
 		}
 
 		return $form;
@@ -304,21 +323,29 @@ class Grid
 
 	public function multiDelete(SubmitButton $button) {
 
-		$values = $button->form->getValues();
-
-		foreach ($values['selected'] as $hexId => $isChecked) {
-			if (!$isChecked) {
-				continue;
-			}
-			$id = json_decode(pack('H*', $hexId), TRUE);
-			$entity = $this->container->em->find($this->classMeta->name, $id);
+		foreach ($this->getMultiCheckedEntities() as $entity) {
 			if (is_callable($this->beforeRemove)) {
 				call_user_func($this->beforeRemove, $entity);
 			}
-			$this->container->em->remove($entity);
+			$this->em->remove($entity);
 		}
 
-		$this->container->em->flush();
+		$this->em->flush();
+
+		$this->redirect('this');
+
+	}
+
+	public function multiAction(SubmitButton $button) {
+
+		preg_match('~^multi_(.*)$~', $button->getName(), $matches);
+
+		$actionParams = @$this->multiActions[$matches[1]];
+
+		if (is_callable($actionParams['callback'])) {
+			$entities = $this->getMultiCheckedEntities();
+			callback($actionParams['callback'])->invoke($entities);
+		}
 
 		$this->redirect('this');
 
@@ -353,6 +380,31 @@ class Grid
 	public function setKeyParam($keyParam) {
 
 		$this->keyParam = $keyParam;
+
+	}
+
+	public function addMultiAction($name, $label, $callback) {
+
+		$this->multiActions[$name] = array(
+			'label'    => $label,
+			'callback' => $callback,
+		);
+
+	}
+
+	private function getMultiCheckedEntities() {
+
+		$entities = array();
+		$values   = $this['gridForm']->getValues();
+
+		foreach ($values['selected'] as $hexId => $isChecked) {
+			if ($isChecked) {
+				$key = json_decode(pack('H*', $hexId), TRUE);
+				$entities[] = $this->em->find($this->classMeta->name, $key);
+			}
+		}
+
+		return $entities;
 
 	}
 

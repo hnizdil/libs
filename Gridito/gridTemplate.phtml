@@ -11,7 +11,9 @@
 			<h2 class="left">{$title}</h2>
 			<div class="right" n:if="$control->hasToolbar() || $control->hasCheckboxes()">
 				{if $control->hasCheckboxes() && $control->getModel()->count() > 0}
-					{input multi_delete class => "button"}
+					{foreach $control->getMultiActionNames() as $name}
+						{input "multi_{$name}" class => "button"}
+					{/foreach}
 				{/if}
 				{foreach $control['toolbar']->getComponents() as $button}
 					<span class="button">
