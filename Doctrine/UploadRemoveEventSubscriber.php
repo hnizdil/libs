@@ -10,11 +10,11 @@ class UploadRemoveEventSubscriber
 	implements EventSubscriber
 {
 
-	protected $parameters;
+	protected $container;
 
 	public function __construct(IContainer $container) {
 
-		$this->parameters = $container->parameters;
+		$this->container = $container;
 
 	}
 
@@ -50,7 +50,8 @@ class UploadRemoveEventSubscriber
 					continue;
 				}
 
-				$uploadDir = $this->parameters[$formMeta['uploadDirParam']];
+				$uploadDir = $this->container->expand(
+					"%{$formMeta['uploadDirParam']}%");
 				$filePath  = $uploadDir . '/' . $entity->$field;
 
 				@unlink($filePath);

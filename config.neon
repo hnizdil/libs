@@ -80,8 +80,6 @@ services:
 
 	uploadRemoveEventSubscriber:
 		class: Hnizdil\Doctrine\UploadRemoveEventSubscriber
-		arguments:
-			- @container # jen kvůli parameters
 
 	mySqlSessionStorage:
 		class: Hnizdil\Nette\Http\MySqlSessionStorage
