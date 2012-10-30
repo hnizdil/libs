@@ -40,7 +40,7 @@ class Column {
 	/**
 	 * @var string
 	 */
-	public $cellClass = '';
+	public $cellCssClassAppend = '';
 
 	/**
 	 * @var boolean

@@ -117,8 +117,7 @@ class Grid
 		$options['renderer'] = array($this, 'renderFunction');
 
 		if ($fieldMeta) {
-			$options['sortable']  = $fieldMeta['isSortable'];
-			$options['cellClass'] = $fieldMeta['cellClass'];
+			$options['sortable'] = $fieldMeta['isSortable'];
 		}
 
 		// podle *ToMany nelze řadit
@@ -137,8 +136,8 @@ class Grid
 				$fieldMeta['defaultSortType'] == 'asc' ? 'asc' : 'desc');
 		}
 
-		$column->setCellClass(function () use ($name) {
-			return $name;
+		$column->setCellClass(function () use ($name, $fieldMeta) {
+			return trim("{$name} {$fieldMeta['cellCssClassAppend']}");
 		});
 
 		return $column;
