@@ -96,11 +96,12 @@ services:
 		class: Hnizdil\Factory\TranslatorFactory(%libsDir%/Hnizdil/Locale)
 
 	templateFactory:
-		class: Hnizdil\Factory\TemplateFactory(
-			@application::getPresenter()
-			%appDir%
-			%templateDir%
-		)
+		class: Hnizdil\Factory\TemplateFactory
+		arguments:
+			- @application::getPresenter()
+			- @nette.template
+			- %appDir%
+			- %templateDir%
 
 	wwwPathGetter:
 		class: Hnizdil\Service\WwwPathGetter
@@ -171,8 +172,8 @@ factories:
 			- %entityClassName%
 
 	template:
-		parameters: [relativePath: null]
-		factory: @templateFactory::create(
-			@nette.template
-			%relativePath%
-		)
+		factory: @templateFactory::create
+		parameters:
+			relativePath: null
+		arguments:
+			- %relativePath%

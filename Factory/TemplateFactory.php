@@ -3,6 +3,8 @@
 namespace Hnizdil\Factory;
 
 use Nette\Application\IPresenter;
+use Nette\Templating\ITemplate;
+use Hnizdil\Factory\TemplateFactoryException as e;
 
 /**
  * Továrna vytváří šablony ze zadané relativní cesty.
@@ -16,17 +18,21 @@ class TemplateFactory
 
 	public function __construct(
 		IPresenter $presenter,
+		ITemplate  $template,
 		           $appDir,
 		           $templateDir
 	) {
 
 		$this->presenter   = $presenter;
+		$this->template    = $template;
 		$this->appDir      = $appDir;
 		$this->templateDir = $templateDir;
 
 	}
 
-	public function create($template, $relativePath) {
+	public function create($relativePath) {
+
+		$template = clone $this->template;
 
 		if ($relativePath) {
 
@@ -61,7 +67,7 @@ class TemplateFactory
 				$template->setFile($path);
 			}
 			else {
-				throw new TemplateException();
+				e::fileNotFound($path);
 			}
 
 		}
