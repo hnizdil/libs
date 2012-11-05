@@ -8,7 +8,8 @@ class Money
 	const SCALE = 2;
 
 	private $amount;
-	private $currency;
+
+	private $locale;
 
 	public function __construct($amount) {
 
@@ -93,36 +94,11 @@ class Money
 
 	}
 
-	public function setCurrency($currency) {
+	public function setLocale($locale) {
 
-		$this->currency = $currency;
+		$this->locale = $locale;
 
 		return $this;
-
-	}
-
-	public function __toString() {
-
-		if (!is_numeric($this->amount)) {
-			return '';
-		}
-
-		if ($this->currency) {
-			$str = number_format($this->amount, 0, '', ' ');
-			switch ($this->currency) {
-			case 'CZK':
-				$str .= ' Kč';
-				break;
-			case 'EUR':
-				$str .= ' €';
-				break;
-			}
-		}
-		else {
-			$str = money_format('%n', $this->amount);
-		}
-
-		return str_replace(' ', "\xc2\xa0", $str);
 
 	}
 
@@ -133,6 +109,40 @@ class Money
 		}
 
 		return number_format($amount, self::SCALE, '.', '');
+
+	}
+
+	public function __toString() {
+
+		if (!is_numeric($this->amount)) {
+			return '';
+		}
+
+		// detekce desetinné části
+		$multiplier = pow(10, self::SCALE);
+		$hasDecimalPart =
+			intval($this->amount) * $multiplier !==
+			intval($this->amount  * $multiplier);
+
+		// zobrazit desetiny pouze pokud nějaké má
+		$format = $hasDecimalPart ? '%n' : '%.0n';
+
+		// nastavení požadovaného locale
+		if ($this->locale) {
+			$originalLocale = setlocale(LC_MONETARY, 0);
+			setlocale(LC_MONETARY, $this->locale);
+		}
+
+		// naformátování částky podle locale
+		$str = money_format($format, $this->amount);
+
+		// navrácení původního locale
+		if ($this->locale) {
+			setlocale(LC_MONETARY, $originalLocale);
+		}
+
+		// vložení nezlomitelných mezer do výsledku
+		return str_replace(' ', "\xc2\xa0", $str);
 
 	}
 
