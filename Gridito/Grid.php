@@ -109,12 +109,13 @@ class Grid
 
 	public function addColumn($name, $label = null, array $options = array()) {
 
-		$fieldMeta = @$this->classMeta->gridFields[$name];
+		$fieldMeta = @$this->classMeta->fieldMappings[$name];
+		$gridMeta  = @$this->classMeta->gridFields[$name];
 
 		$options['renderer'] = array($this, 'renderFunction');
 
-		if ($fieldMeta) {
-			$options['sortable'] = $fieldMeta['isSortable'];
+		if ($gridMeta) {
+			$options['sortable'] = $gridMeta['isSortable'];
 		}
 
 		// podle *ToMany nelze řadit
@@ -125,16 +126,16 @@ class Grid
 
 		// přidání sloupce
 		$column = parent::addColumn(
-			$name, @$fieldMeta['title'] ?: $label, $options);
+			$name, @$gridMeta['title'] ?: $label, $options);
 
 		// sežazeno podle sloupce
-		if ($fieldMeta && $fieldMeta['defaultSortType'] != '') {
+		if ($gridMeta && $gridMeta['defaultSortType'] != '') {
 			$this->setDefaultSorting($name,
-				$fieldMeta['defaultSortType'] == 'asc' ? 'asc' : 'desc');
+				$gridMeta['defaultSortType'] == 'asc' ? 'asc' : 'desc');
 		}
 
-		$column->setCellClass(function () use ($name, $fieldMeta) {
-			return trim("{$name} {$fieldMeta['cellCssClassAppend']}");
+		$column->setCellClass(function () use ($name, $fieldMeta, $gridMeta) {
+			return trim("{$name} type-{$fieldMeta['type']} {$gridMeta['cellCssClassAppend']}");
 		});
 
 		return $column;
@@ -143,9 +144,10 @@ class Grid
 
 	public function renderFunction(AbstractEntity $entity, Column $column) {
 
-		$fieldMeta = @$this->classMeta->fieldMappings[$column->columnName]       ?: array();
-		$assocMeta = @$this->classMeta->associationMappings[$column->columnName] ?: array();
-		$gridMeta  = @$this->classMeta->gridFields[$column->columnName]          ?: array();
+		$cm        = $this->classMeta;
+		$fieldMeta = @$cm->fieldMappings[$column->columnName]       ?: array();
+		$assocMeta = @$cm->associationMappings[$column->columnName] ?: array();
+		$gridMeta  = @$cm->gridFields[$column->columnName]          ?: array();
 
 		// sloupec má alias
 		if ($this->model->hasColumnAlias($column->columnName)) {
