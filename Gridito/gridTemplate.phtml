@@ -6,15 +6,20 @@
 	{include #flashes}
 	<div class="box">
 		{form $form}
-		<div class="filter" n:if="isset($form['filter'])">
-			<table>
-				{foreach $form['filter']['fields']->getControls() as $fc}
-					{if $hf = $fc->getOption('filterHeaderField')}
-						{?$GLOBALS['headerFields'][$hf] = $fc}
-					{elseif $fc->getOption('rendered')}
-						{* input se zřejmě vyrenderuje ručně *}
-					{else}
-					<tr>
+		{if isset($form['filter'])}
+			{var $filterControls = array()}
+			{foreach $form['filter']['fields']->getControls() as $fc}
+				{if $hf = $fc->getOption('filterHeaderField')}
+					{?$GLOBALS['headerFields'][$hf] = $fc}
+				{elseif $fc->getOption('rendered')}
+					{* input se zřejmě vyrenderuje ručně *}
+				{else}
+					{?$filterControls[] = $fc}
+				{/if}
+			{/foreach}
+			<div class="filter" n:if="$filterControls">
+				<table>
+					<tr n:foreach="$filterControls as $fc">
 						<th>
 							{$fc->label}
 						</th>
@@ -22,29 +27,34 @@
 							{$fc->control}
 						</td>
 					</tr>
-					{/if}
-				{/foreach}
-				<tr>
-					<th></th>
-					<td>
-						{$form['filter']['submit']->control}
-						{$form['filter']['reset']->control}
-					</td>
-				</tr>
-			</table>
-		</div>
+					<tr>
+						<th></th>
+						<td>
+							{$form['filter']['submit']->control}
+							{$form['filter']['reset']->control}
+						</td>
+					</tr>
+				</table>
+			</div>
+		{/if}
 		<div class="box-head">
-			<div class="right" n:if="$control->hasToolbar() || $control->hasCheckboxes()">
+			{var $filterButtonsInToolbar = isset($form['filter']) && !$filterControls}
+			<div class="right"
+				n:if="$control->hasToolbar()
+					|| $control->hasCheckboxes()
+					|| $filterButtonsInToolbar">
 				{if $control->hasCheckboxes() && $control->getModel()->count() > 0}
 					{foreach $control->getMultiActionNames() as $name}
 						{input "multi_{$name}" class => "button"}
 					{/foreach}
 				{/if}
-				{foreach $control['toolbar']->getComponents() as $button}
-					<span class="button">
+				<span class="button" n:inner-foreach="$control['toolbar']->getComponents() as $button">
 					{control $button}
-					</span>
-				{/foreach}
+				</span>
+				{if $filterButtonsInToolbar}
+					{$form['filter']['submit']->control}
+					{$form['filter']['reset']->control}
+				{/if}
 			</div>
 		</div>
 		<div class="table">
