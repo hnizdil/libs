@@ -2,18 +2,19 @@
 
 namespace Hnizdil\Gridito;
 
-use Hnizdil\ORM\AbstractEntity;
+use InvalidArgumentException;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
-use Hnizdil\Gridito\FilterForm;
-use Hnizdil\Factory\TranslatorFactory;
-use Hnizdil\Nette\Localization\NoTranslator;
-use Nette\Utils\Html;
-use Nette\DI\IContainer;
-use Nette\Application\UI\Form;
-use Nette\Forms\Controls\SubmitButton;
-use Doctrine\Common\Persistence\ObjectManager;
-use Gridito\Model\AbstractModel;
 use Gridito\Column;
+use Hnizdil\Factory\TranslatorFactory;
+use Hnizdil\Nette\Forms\Controls\DateInput;
+use Hnizdil\Nette\Localization\NoTranslator;
+use Hnizdil\ORM\AbstractEntity;
+use Nette\Application\UI\Form;
+use Nette\DI\IContainer;
+use Nette\Forms\Controls\SubmitButton;
+use Nette\Forms\Controls\TextInput;
+use Nette\Utils\Html;
 
 class Grid
 	extends \Gridito\Grid
@@ -47,21 +48,17 @@ class Grid
 
 	private $multiActions = array();
 
-	/**
-	 * udržuje reference na vygenerované checkboxy
-	 *
-	 * @var array<Nette\Forms\Controls\Checkbox>
-	 * @access private
-	 */
-	private $checkboxes = array();
+	private $defaultFilter = array();
+
+	private $filterContainerCallback;
 
 	public function __construct(
-		IContainer $container,
-		ObjectManager $em,
-		AbstractModel $model,
-		TranslatorFactory $translatorFactory,
-		NoTranslator $noTranslator,
-		$entityClassName
+		IContainer                $container,
+		EntityManager             $em,
+		DoctrineQueryBuilderModel $model,
+		TranslatorFactory         $translatorFactory,
+		NoTranslator              $noTranslator,
+		                          $entityClassName
 	) {
 
 		parent::__construct();
@@ -76,7 +73,7 @@ class Grid
 		try {
 			$translator = $translatorFactory->create();
 		}
-		catch (\InvalidArgumentException $e) {
+		catch (InvalidArgumentException $e) {
 			$translator = $noTranslator;
 		}
 
@@ -141,25 +138,6 @@ class Grid
 		});
 
 		return $column;
-
-	}
-
-	public function attached($presenter) {
-
-		parent::attached($presenter);
-
-		$filterForm = $presenter->getComponent('filterForm', FALSE);
-
-		if ($filterForm instanceof FilterForm) {
-			$filterForm->getElementPrototype()->class('filter-form');
-			$this->template->filterForm = $filterForm;
-			if ($this->filter) {
-				$filterForm->setDefaults($this->filter);
-				$filterForm->apply($this->model->getQueryBuilder());
-			}
-		}
-
-		$this->setModel($this->model);
 
 	}
 
@@ -230,43 +208,21 @@ class Grid
 
 	}
 
-	// TODO: tohoto se zbavit
-	public function render($title = '') {
+	public function render() {
 
 		if ($this->hasCheckboxes()) {
 			$this->presenter->addScript('grid.js');
 		}
 
-		$this->paginator->setItemsPerPage($this->itemsPerPage);
-		$this->paginator->setPage($this->page);
-		$this->model->setLimit($this->paginator->getLength());
-		$this->model->setOffset($this->paginator->getOffset());
+		// formulář je nutné vytvořit už tady kvůli filtrům a počtu položek
+		$this->template->form = $this['gridForm'];
 
-		if ($this->sortColumn && $this['columns']->getComponent($this->sortColumn)->isSortable()) {
-			$sortByColumn = $this['columns']->getComponent($this->sortColumn);
-			$this->model->setSorting($sortByColumn->getColumnName(), $this->sortType);
-		} elseif ($this->defaultSortColumn) {
-			$this->model->setSorting($this->defaultSortColumn, $this->defaultSortType);
-		}
+		$this->template->itemsPerPage = $this->itemsPerPage;
 
-		$page = $this->paginator->getPage();
-		if ($this->paginator->getPageCount() < 2) {
-			$steps = array($page);
-		} else {
-			$steps = array($this->paginator->getFirstPage());
-			$steps = array_merge($steps, range(
-				max($this->paginator->getFirstPage(), $page - 2),
-				min($this->paginator->getLastPage(), $page + 2)
-			));
-			$steps[] = $this->paginator->getLastPage();
-			$steps = array_unique($steps);
-		}
+		$this->setModel($this->model);
+		$this->setItemsPerPage($this->itemsPerPage);
 
-		$this->template->title           = $title;
-		$this->template->paginationSteps = $steps;
-		$this->template->itemsPerPage    = $this->itemsPerPage;
-
-		$this->template->render();
+		parent::render();
 
 	}
 
@@ -287,18 +243,60 @@ class Grid
 
 	public function createComponentGridForm() {
 
-		$form = new Form();
+		$form = new Form;
 
+		// filtr (nutný před checkboxy)
+		if ($this->filterContainerCallback) {
+
+			$filterContainer = $form->addContainer('filter');
+
+			$filterContainer->addSubmit('submit', 'Hledat')->onClick[] =
+				function(SubmitButton $button) {
+					$values = $button->form->getValues(TRUE);
+					$grid = $button->form->parent;
+					$grid->filter = $values['filter']['fields'];
+					$grid->presenter->redirect('this');
+				};
+
+			$filterContainer->addSubmit('reset', 'Vymazat')->onClick[] =
+				function(SubmitButton $button) {
+					$grid = $button->form->parent;
+					$grid->filter = array();
+					$grid->presenter->redirect('this');
+				};
+
+			$filterContainer['submit']->getControlPrototype()->class('find');
+			$filterContainer['reset']->getControlPrototype()->class('clear');
+
+			$fieldsContainer = $filterContainer->addContainer('fields');
+
+			callback($this->filterContainerCallback)
+				->invoke($fieldsContainer, $this->model->getQueryBuilder());
+
+			// selectboxy jsou automaticky nepovinné
+			$selectBoxes = $fieldsContainer->getComponents(
+				TRUE, 'Nette\\Forms\\Controls\\SelectBox');
+			foreach ($selectBoxes as $selectbox) {
+				$selectbox->setPrompt('');
+			}
+
+			// defaultní filtrování
+			if ($this->defaultFilter && !$this->filter) {
+				$this->filter = $this->defaultFilter;
+			}
+
+			if ($this->filter) {
+				$fieldsContainer->setDefaults($this->filter);
+				$this->addFilterConditions($fieldsContainer->getControls());
+			}
+
+		}
+
+		// checkboxy
 		if ($this->hasCheckboxes()) {
-			$container = $form->addContainer('selected');
-			$itemClassMeta = NULL;
-			foreach ($this->getModel()->getItems() as $item) {
-				if ($itemClassMeta === NULL) {
-					$itemClassMeta = $this->em
-						->getClassMetadata(get_class($item));
-				}
-				$this->checkboxes[] = $container->addCheckbox(bin2hex(
-					json_encode($itemClassMeta->getIdentifierValues($item))));
+			$filterContainer = $form->addContainer('selected');
+			foreach ($this->model->getItems() as $item) {
+				$filterContainer->addCheckbox($this->encodeEntityKey($item));
 			}
 		}
 
@@ -350,23 +348,15 @@ class Grid
 
 	}
 
-	public function getCheckbox() {
-
-		static $no = 0;
-
-		return $this->checkboxes[$no++]->control;
-
-	}
-
 	public function setBeforeRemove($callback) {
 
 		$this->beforeRemove = $callback;
 
 	}
 
-	public function getModel() {
+	public function setDefaultFilter(array $defaultFilter) {
 
-		return $this->model;
+		$this->defaultFilter = $defaultFilter;
 
 	}
 
@@ -391,6 +381,24 @@ class Grid
 
 	}
 
+	public function setFilterContainerCallback($filterContainerCallback) {
+
+		$this->filterContainerCallback = $filterContainerCallback;
+
+	}
+
+	public function getCheckbox(AbstractEntity $item) {
+
+		return $this['gridForm']['selected'][$this->encodeEntityKey($item)];
+
+	}
+
+	public function getModel() {
+
+		return $this->model;
+
+	}
+
 	private function getMultiCheckedEntities() {
 
 		$entities = array();
@@ -404,6 +412,96 @@ class Grid
 		}
 
 		return $entities;
+
+	}
+
+	private function addFilterConditions($controls) {
+
+		$conditions = array();
+
+		$qb = $this->model->getQueryBuilder();
+
+		foreach ($controls as $name => $control) {
+
+			if ($control instanceof SubmitButton) {
+				continue;
+			}
+
+			$value = $control->getValue();
+
+			if ($value === NULL || $value === '') {
+				continue;
+			}
+
+			$name      = $control->getOption('ffField', $name);
+			$fieldName = $control->parent->getName() . '.' . $name;
+			$paramName = 'param' . md5($control->getHtmlId());
+			$fields    = $control->getOption('ffAnotherFields', array());
+			$fieldType = $control->getOption('ffFieldType', 'string');
+			$operator  = $control->getOption('ffOperator', FALSE);
+			$fields[]  = $fieldName;
+			$orX       = array();
+
+			if ($control instanceof TextInput) {
+				foreach ($fields as $fieldName) {
+					$orX[] = $qb->expr()->like($fieldName, ':' . $paramName);
+				}
+				$qb->setParameter($paramName, "%{$value}%");
+			}
+
+			elseif ($control instanceof DateInput) {
+				if ($operator == 'lte' || $operator == 'gte') {
+					foreach ($fields as $fieldName) {
+						$orX[] = $qb->expr()
+							->$operator($fieldName, ':' . $paramName);
+					}
+					$qb->setParameter($paramName,
+						$value->format('Y-m-d '
+							. ($operator == 'lte' ? '23:59:59' : '00:00:00')));
+				}
+				elseif ($fieldType == 'datetime') {
+					foreach ($fields as $fieldName) {
+						$orX[] = $qb->expr()->between($fieldName,
+							":{$paramName}start", ":{$paramName}end");
+					}
+					$qb->setParameter(":{$paramName}start",
+						$value->format('Y-m-d 00:00:00'));
+					$qb->setParameter(":{$paramName}end",
+						$value->format('Y-m-d 23:59:59'));
+				}
+				else {
+					foreach ($fields as $fieldName) {
+						$orX[] = $qb->expr()->eq($fieldName, ':' . $paramName);
+					}
+					$qb->setParameter($paramName,
+						$value->format('Y-m-d'));
+				}
+			}
+
+			else {
+				foreach ($fields as $fieldName) {
+					$orX[] = $qb->expr()->eq($fieldName, ':' . $paramName);
+				}
+				$qb->setParameter($paramName, $value);
+			}
+
+			$conditions[] = call_user_func_array(
+				array($qb->expr(), 'orX'), $orX);
+
+		}
+
+		if ($conditions) {
+			$qb->andWhere(call_user_func_array(
+				array($qb->expr(), 'andX'), $conditions));
+		}
+
+	}
+
+	private function encodeEntityKey(AbstractEntity $entity) {
+
+		$meta = $this->em->getClassMetadata(get_class($entity));
+
+		return bin2hex(json_encode($meta->getIdentifierValues($entity)));
 
 	}
 

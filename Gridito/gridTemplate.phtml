@@ -1,14 +1,39 @@
 {layout $control->presenter->context->params['libsDir'] . '/Gridito/templates/grid.phtml'}
 
+{var $headerFields = array()}
+
 {block #grid}
 	{include #flashes}
 	<div class="box">
-		{if isset($filterForm)}
-			{control $filterForm}
-		{/if}
-		{form gridForm}
+		{form $form}
+		<div class="filter" n:if="isset($form['filter'])">
+			<table>
+				{foreach $form['filter']['fields']->getControls() as $fc}
+					{if $hf = $fc->getOption('filterHeaderField')}
+						{?$GLOBALS['headerFields'][$hf] = $fc}
+					{elseif $fc->getOption('rendered')}
+						{* input se zřejmě vyrenderuje ručně *}
+					{else}
+					<tr>
+						<th>
+							{$fc->label}
+						</th>
+						<td>
+							{$fc->control}
+						</td>
+					</tr>
+					{/if}
+				{/foreach}
+				<tr>
+					<th></th>
+					<td>
+						{$form['filter']['submit']->control}
+						{$form['filter']['reset']->control}
+					</td>
+				</tr>
+			</table>
+		</div>
 		<div class="box-head">
-			<h2 class="left">{$title}</h2>
 			<div class="right" n:if="$control->hasToolbar() || $control->hasCheckboxes()">
 				{if $control->hasCheckboxes() && $control->getModel()->count() > 0}
 					{foreach $control->getMultiActionNames() as $name}
@@ -31,10 +56,12 @@
 {/block}
 
 {block tableheader}
-<th class="select-col" n:if="$control->hasCheckboxes()">
+<th class="select-col"
+	n:if="$control->hasCheckboxes()">
 	<input type="checkbox" title="Invertovat výběr" />
 </th>
-<th n:foreach="$control['columns']->getComponents() as $column" n:class="$column->getCellClass($iterator, item)">
+<th n:foreach="$control['columns']->getComponents() as $column"
+	n:class="$column->getCellClass($iterator, item)">
 	{block tableheadercontent}
 		{if $column->isSortable()}
 			{if $column->getSorting() === NULL}
@@ -57,6 +84,16 @@
 		{else}
 			{$column->getLabel()}
 		{/if}
+		{if $filterControl = @$GLOBALS['headerFields'][$column->getName()]}
+			{var $renderer = $filterControl->getOption('filterHeaderRenderer')}
+			<span class="header-filter">
+				{if $renderer}
+					{!=$renderer()}
+				{else}
+					{$filterControl->control}
+				{/if}
+			</span>
+		{/if}
 	{/block}
 </th>
 <th class="gridito-actioncell" n:if="$control->hasActions()">{_'Akce'}</th>
@@ -65,7 +102,7 @@
 {block tablebody}
 <tr n:foreach="$control->getModel()->getItems() as $item" n:class="$control->getRowClass($iterator, $item)">
 	<td n:if="$control->hasCheckboxes()">
-		{$control->getCheckbox()}
+		{$control->getCheckbox($item)->control}
 	</td>
 	<td n:class="gridito-cell, $column->getCellClass($iterator, item), $control->isColumnHighlighted($column) ? ui-state-highlight" n:foreach="$control['columns']->getComponents() as $column">
 		{control $column:cell $item}
