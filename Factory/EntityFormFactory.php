@@ -357,8 +357,7 @@ class EntityFormFactory
 							0 => 'ne',
 						));
 						$control->getSeparatorPrototype()
-							->setName('span')
-							->setHtml('&nbsp;&nbsp;&nbsp;');
+							->setName('span')->class('sep');
 						$ruleFilled = TRUE;
 						$default = is_bool($default) ? (int)$default : 2;
 					}
