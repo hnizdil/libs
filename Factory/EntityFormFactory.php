@@ -163,8 +163,6 @@ class EntityFormFactory
 								}
 								// odstranění kontejneru
 								$replicator->remove($container, TRUE);
-								// přesměrování, ať tam nestraší signál
-								$form->presenter->redirect('this');
 							};
 
 					}, $subContainerCount);
