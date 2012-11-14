@@ -136,6 +136,9 @@ services:
 
 factories:
 
+	nette.latte:
+		class: Hnizdil\Nette\Latte\Engine
+
 	doctrineCache:
 		parameters: [namespace]
 		class: Hnizdil\Doctrine\Cache(
