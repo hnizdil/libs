@@ -469,18 +469,20 @@ class EntityFormFactory
 			if ($e->errorInfo[1] == 1062) {
 				$pattern = "~Duplicate entry '(.*?)' for key '(.*?)'~";
 				preg_match($pattern, $e->getMessage(), $matches);
+				list(, $value, $name) = $matches;
 				$meta = $em->getClassMetadata(get_class($form->getEntity()));
-				$formMeta = @$meta->formFields[$meta->fieldNames[$matches[2]]];
-				if ($formMeta) {
+				$formMeta = @$meta->formFields[$meta->fieldNames[$name]];
+				$gridMeta = @$meta->gridFields[$meta->fieldNames[$name]];
+				if ($formMeta || $gridMeta) {
 					$error = sprintf(
-						'Objekt mající položku „%s“ rovnou „%s“ už existuje.',
-						$formMeta['title'],
-						$matches[1]);
+						'Objekt mající položku „%s“ rovnu „%s“ už existuje.',
+						$formMeta['title'] ?: $gridMeta['title'] ?: $name,
+						$value);
 				}
 				else {
 					$error = sprintf(
 						'Hodnota „%s“ je již použita u jiného objektu.',
-						$matches[1]);
+						$value);
 				}
 				$form->addError($error);
 				return FALSE;
