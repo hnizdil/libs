@@ -5,7 +5,7 @@
 {block #grid}
 	{include #flashes}
 	<div class="box">
-		{form $form}
+	{form $form}
 		{if isset($form['filter'])}
 			{var $filterControls = array()}
 			{foreach $form['filter']['fields']->getControls() as $fc}
@@ -17,6 +17,9 @@
 					{?$filterControls[] = $fc}
 				{/if}
 			{/foreach}
+			{if @$GLOBALS['headerFields']}
+				{$control->presenter->addScript('grid.js')}
+			{/if}
 			<div class="filter" n:if="$filterControls">
 				<table>
 					<tr n:foreach="$filterControls as $fc">
@@ -38,30 +41,31 @@
 			</div>
 		{/if}
 		<div class="box-head">
-			{var $filterButtonsInToolbar = isset($form['filter']) && !$filterControls}
-			<div class="right"
-				n:if="$control->hasToolbar()
-					|| $control->hasCheckboxes()
-					|| $filterButtonsInToolbar">
+			{var $entireFilterIsInHeader = isset($form['filter']) && !$filterControls}
+			<div class="right" n:if="$entireFilterIsInHeader">
+				{$form['filter']['reset']->control->value("Vymazat hledání")}
+			</div>
+			<div class="left"
+				n:if="$control->hasToolbar() || $control->hasCheckboxes()">
 				{if $control->hasCheckboxes() && $control->getModel()->count() > 0}
 					{foreach $control->getMultiActionNames() as $name}
 						{input "multi_{$name}" class => "button"}
 					{/foreach}
 				{/if}
-				<span class="button" n:inner-foreach="$control['toolbar']->getComponents() as $button">
+				<span class="button"
+					n:inner-foreach="$control['toolbar']->getComponents() as $button">
 					{control $button}
 				</span>
-				{if $filterButtonsInToolbar}
-					{$form['filter']['submit']->control}
-					{$form['filter']['reset']->control}
-				{/if}
 			</div>
 		</div>
 		<div class="table">
 			{include #data}
 		</div>
-		{/form}
-		{include #paginator}
+		<div style="display: none;" n:if="$entireFilterIsInHeader">
+			{$form['filter']['submit']->control}
+		</div>
+	{/form}
+	{include #paginator}
 	</div>
 {/block}
 
