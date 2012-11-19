@@ -483,15 +483,15 @@ class EntityFormFactory
 				if ($formMeta || $gridMeta) {
 					$form->addError(sprintf(
 						$this->translator->translate(
-							'Objekt mající položku „%%s“ ' .
-							'rovnu „%%s“ už existuje.'),
+							'Objekt mající položku „%s“ ' .
+							'rovnu „%s“ už existuje.'),
 						$formMeta['title'] ?: $gridMeta['title'] ?: $name,
 						$value));
 				}
 				else {
 					$form->addError(sprintf(
 						$this->translator->translate(
-							'Hodnota „%%s“ je již použita u jiného objektu.'),
+							'Hodnota „%s“ je již použita u jiného objektu.'),
 						$value));
 				}
 
@@ -562,9 +562,10 @@ class EntityFormFactory
 
 					$form->addError(sprintf(
 						$this->translator->translate(
-							'Nelze smazat objekt typu “%%s„, protože na něm ' .
-							'závisí existující objekty typu “%%s„.'),
-						$refClass, $class));
+							'Nelze smazat objekt typu “%s„, protože na něm ' .
+							'závisí existující objekty typu “%s„.'),
+						$refClass,
+						$class));
 
 					return FALSE;
 
