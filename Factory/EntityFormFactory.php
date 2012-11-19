@@ -570,8 +570,8 @@ class EntityFormFactory
 
 					$form->addError(sprintf(
 						$this->translator->translate(
-							'Nelze smazat objekt typu “%s„, protože na něm ' .
-							'závisí existující objekty typu “%s„.'),
+							'Nelze smazat objekt typu „%s“, protože na něm ' .
+							'závisí existující objekty typu „%s“.'),
 						$refClass,
 						$class));
 

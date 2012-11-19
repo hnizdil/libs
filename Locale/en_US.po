@@ -44,7 +44,7 @@ msgstr "Object with field “%s” of value “%s” already exists."
 msgid "Hodnota „%s“ je již použita u jiného objektu."
 msgstr "Value “%s” is already used in another object."
 
-msgid "Nelze smazat objekt typu “%s„, protože na něm závisí existující objekty typu “%s„."
+msgid "Nelze smazat objekt typu „%s“, protože na něm závisí existující objekty typu „%s“."
 msgstr "Object of type “%s” cannot be deleted, because there are objects of type “%s” that depend on it."
 
 msgid "Položka „%%label“ není platná WWW adresa"
