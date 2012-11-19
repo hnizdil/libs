@@ -35,6 +35,9 @@ msgstr "Edit"
 msgid "Smazat označené"
 msgstr "Delete selected"
 
+msgid "Skutečně smazat?"
+msgstr "Really delete?"
+
 msgid "Objekt mající položku „%s“ rovnu „%s“ už existuje."
 msgstr "Object with field “%s” of value “%s” already exists."
 

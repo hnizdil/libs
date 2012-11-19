@@ -72,7 +72,10 @@ class EntityFormFactory
 
 		if ($entity instanceof AbstractEntity && !$entity->isFresh()) {
 			$form->addSubmit('delete', 'Smazat')
+				->setValidationScope(FALSE)
 				->onClick[] = array($this, 'doDelete');
+			$form['delete']->getControlPrototype()->{'data-confirm'}(
+				$this->translator->translate('Skutečně smazat?'));
 		}
 
 		if ($this->translator) {
@@ -512,7 +515,10 @@ class EntityFormFactory
 
 		// přesměrujeme pouze pokud byl formulář uložen defaultním tlačítkem
 		if ($button === $form['send']) {
-			$form->presenter->redirect('this');
+			$meta = $em->getClassMetadata(get_class($entity));
+			$form->presenter->redirect('this', array(
+				'id' => $meta->getIdentifierValues($entity),
+			));
 		}
 
 	}
@@ -524,7 +530,9 @@ class EntityFormFactory
 		$entity = $form->getEntity();
 
 		if ($entity instanceof AbstractEntity) {
+
 			$em->remove($entity);
+
 			try {
 				$em->flush();
 			}
@@ -574,11 +582,12 @@ class EntityFormFactory
 					throw $e;
 				}
 			}
+
 		}
 
 		$form->postDelete($entity, $form);
 
-		$form->presenter->redirect('this');
+		$form->presenter->redirect('list');
 
 	}
 
