@@ -121,6 +121,7 @@ services:
 			- @translatorFactory
 			- @entityFactory
 			- @wwwPathGetter
+			- @noTranslator
 
 	entityFactory:
 		class: Hnizdil\Factory\EntityFactory

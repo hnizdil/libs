@@ -4,24 +4,25 @@ namespace Hnizdil\Factory;
 
 use PDOException;
 use InvalidArgumentException;
-use Hnizdil\Service\WwwPathGetter;
-use Hnizdil\Factory\EntityFormFactoryException as e;
-use Doctrine\ORM\Mapping as ORM;
-use Hnizdil\ORM\AbstractEntity;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\DBAL\Types;
+use Doctrine\ORM\Mapping as ORM;
+use Hnizdil\Doctrine\EntityForm;
+use Hnizdil\Factory\EntityFormFactoryException as e;
+use Hnizdil\Nette\Forms\EntityContainer;
+use Hnizdil\Nette\Localization\NoTranslator;
+use Hnizdil\ORM\AbstractEntity;
+use Hnizdil\Service\WwwPathGetter;
+use Kdyby\Forms\Containers\Replicator;
+use Nette\ComponentModel\IContainer as IComponentContainer;
 use Nette\DI\IContainer;
 use Nette\Forms\Controls\SubmitButton;
-use Nette\ComponentModel\IContainer as IComponentContainer;
 use Nette\Http\FileUpload;
 use Nette\ObjectMixin;
 use Nette\Utils\Html;
 use Nette\Utils\Strings;
-use Doctrine\Common\Persistence\ObjectManager;
-use Doctrine\Common\Collections\Collection;
-use Doctrine\Common\Collections\ArrayCollection;
-use Hnizdil\Doctrine\EntityForm;
-use Hnizdil\Nette\Forms\EntityContainer;
-use Kdyby\Forms\Containers\Replicator;
 
 class EntityFormFactory
 {
@@ -38,13 +39,15 @@ class EntityFormFactory
 		ObjectManager     $em,
 		TranslatorFactory $translatorFactory,
 		EntityFactory     $entityFactory,
-		WwwPathGetter     $wwwPathGetter
+		WwwPathGetter     $wwwPathGetter,
+		NoTranslator      $noTranslator
 	) {
 
 		try {
 			$this->translator = $translatorFactory->create();
 		}
 		catch (InvalidArgumentException $e) {
+			$this->translator = $noTranslator;
 		}
 
 		$this->em            = $em;
@@ -466,30 +469,39 @@ class EntityFormFactory
 			$em->flush();
 		}
 		catch (PDOException $e) {
+
+			// duplicitní hodnota pro unikátní klíč
 			if ($e->errorInfo[1] == 1062) {
+
 				$pattern = "~Duplicate entry '(.*?)' for key '(.*?)'~";
 				preg_match($pattern, $e->getMessage(), $matches);
 				list(, $value, $name) = $matches;
 				$meta = $em->getClassMetadata(get_class($form->getEntity()));
 				$formMeta = @$meta->formFields[$meta->fieldNames[$name]];
 				$gridMeta = @$meta->gridFields[$meta->fieldNames[$name]];
+
 				if ($formMeta || $gridMeta) {
-					$error = sprintf(
-						'Objekt mající položku „%s“ rovnu „%s“ už existuje.',
+					$form->addError(sprintf(
+						$this->translator->translate(
+							'Objekt mající položku „%%s“ ' .
+							'rovnu „%%s“ už existuje.'),
 						$formMeta['title'] ?: $gridMeta['title'] ?: $name,
-						$value);
+						$value));
 				}
 				else {
-					$error = sprintf(
-						'Hodnota „%s“ je již použita u jiného objektu.',
-						$value);
+					$form->addError(sprintf(
+						$this->translator->translate(
+							'Hodnota „%%s“ je již použita u jiného objektu.'),
+						$value));
 				}
-				$form->addError($error);
+
 				return FALSE;
+
 			}
 			else {
 				throw $e;
 			}
+
 		}
 
 		if ($this->uploads) {
@@ -513,7 +525,54 @@ class EntityFormFactory
 
 		if ($entity instanceof AbstractEntity) {
 			$em->remove($entity);
-			$em->flush();
+			try {
+				$em->flush();
+			}
+			catch (PDOException $e) {
+
+				// nelze smazat kvůli cizímu klíči
+				if ($e->errorInfo[1] == 1451) {
+
+					// zjistíme postižené tabulky
+					preg_match('~
+						`.*` \. `(?<table>.*)` ,
+						\s CONSTRAINT \s `.*`
+						\s FOREIGN \s KEY \s \(`.*`\)
+						\s REFERENCES
+							\s `(?<refTable>.*)`
+							\s \(`.*`\)
+					~xiU', $e->errorInfo[2], $matches);
+
+					// zjistíme odpovídající entity
+					$entities = $em->getConfiguration()
+						->getMetadataDriverImpl()
+						->getAllClassNames();
+					foreach ($entities as $className) {
+						$meta = $em->getClassMetadata($className);
+						if ($meta->table['name'] == $matches['table']) {
+							$class = $className;
+						}
+						elseif ($meta->table['name'] == $matches['refTable']) {
+							$refClass = $className;
+						}
+						if (isset($class, $refClass)) {
+							break;
+						}
+					}
+
+					$form->addError(sprintf(
+						$this->translator->translate(
+							'Nelze smazat objekt typu “%%s„, protože na něm ' .
+							'závisí existující objekty typu “%%s„.'),
+						$refClass, $class));
+
+					return FALSE;
+
+				}
+				else {
+					throw $e;
+				}
+			}
 		}
 
 		$form->postDelete($entity, $form);
