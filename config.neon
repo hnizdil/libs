@@ -27,13 +27,13 @@ nette:
 
 	forms:
 		messages:
-			URL: 'Položka „%label“ není platná WWW adresa'
-			EMAIL: 'Položka „%label“ není platná e-mailová adresa'
-			IMAGE: 'Nahraný soubor „%label“ musí být JPG, PNG nebo GIF obrázek'
-			FILLED: 'Položka „%label“ musí být vyplněna'
-			LENGTH: 'Položka „%label“ musí být dlouhá přesně %d znaků'
-			INTEGER: 'Položka „%label“ musí být číslo'
-			MAX_LENGTH: 'Položka „%label“ nesmí být delší než %d znaků'
+			URL: 'Položka „%%%label“ není platná WWW adresa'
+			EMAIL: 'Položka „%%%label“ není platná e-mailová adresa'
+			IMAGE: 'Nahraný soubor „%%%label“ musí být JPG, PNG nebo GIF obrázek'
+			FILLED: 'Položka „%%%label“ musí být vyplněna'
+			LENGTH: 'Položka „%%%label“ musí být dlouhá přesně %%%d znaků'
+			INTEGER: 'Položka „%%%label“ musí být číslo'
+			MAX_LENGTH: 'Položka „%%%label“ nesmí být delší než %%%d znaků'
 
 services:
 

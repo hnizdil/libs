@@ -34,3 +34,24 @@ msgstr "Edit"
 
 msgid "Smazat označené"
 msgstr "Delete selected"
+
+msgid "Položka „%%label“ není platná WWW adresa"
+msgstr "Field “%%label” is not a valid WWW address"
+
+msgid "Položka „%%%label“ není platná e-mailová adresa"
+msgstr "Field “%%label” is not a valid e-mail address"
+
+msgid "Nahraný soubor „%%label“ musí být JPG, PNG nebo GIF obrázek"
+msgstr "Uploaded file “%%label” has to be JPG, PNG or GIF image"
+
+msgid "Položka „%%label“ musí být vyplněna"
+msgstr "Field “%%label” has to be filled"
+
+msgid "Položka „%%label“ musí být dlouhá přesně %%d znaků"
+msgstr "Field “%%label” has to be exactly %%d characters long"
+
+msgid "Položka „%%label“ musí být číslo"
+msgstr "Field “%%label” has to be a number"
+
+msgid "Položka „%%label“ nesmí být delší než %%d znaků"
+msgstr "Field “%%label” can't be more than %%d characters long"
