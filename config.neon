@@ -15,6 +15,7 @@ parameters:
 			url: Hnizdil\DBAL\UrlType
 			email: Hnizdil\DBAL\EmailType
 			password: Hnizdil\DBAL\PasswordType
+			sorting: Hnizdil\DBAL\SortingType
 
 php:
 

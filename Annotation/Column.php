@@ -18,6 +18,13 @@ class Column {
 	public $isSortable = TRUE;
 
 	/**
+	 * Sloupec je handle pro drag'n'drop jQueryUI řazení.
+	 *
+	 * @var boolean
+	 */
+	public $isSortingHandle = FALSE;
+
+	/**
 	 * @var boolean
 	 */
 	public $autoAdd = TRUE;

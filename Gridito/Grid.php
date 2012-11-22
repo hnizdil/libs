@@ -2,14 +2,17 @@
 
 namespace Hnizdil\Gridito;
 
+use DateTime;
 use InvalidArgumentException;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Doctrine\Common\Collections\Collection;
 use Gridito\Column;
 use Hnizdil\Factory\TranslatorFactory;
 use Hnizdil\Nette\Forms\Controls\DateInput;
 use Hnizdil\Nette\Localization\NoTranslator;
 use Hnizdil\ORM\AbstractEntity;
+use Nette\ObjectMixin;
 use Nette\Application\UI\Form;
 use Nette\DI\IContainer;
 use Nette\Forms\Controls\SubmitButton;
@@ -31,6 +34,8 @@ class Grid
 	 * @persistent
 	 */
 	public $filter = array();
+
+	public $isSortable = FALSE;
 
 	private $model;
 
@@ -138,7 +143,94 @@ class Grid
 			return trim("{$name} type-{$fieldMeta['type']} {$gridMeta['cellCssClassAppend']}");
 		});
 
+		// je možné měnit pořadí položek přes drag'n'drop
+		if ($gridMeta['isSortingHandle']) {
+			$this->isSortable = TRUE;
+		}
+
 		return $column;
+
+	}
+
+	public function handleApplySorting($from, $prev, $next) {
+
+		$em   = $this->em;
+		$col  = $this->sortColumn;
+		$meta = $this->classMeta;
+
+		// položky nejsou seřazeny podle pořadí
+		if (!@$meta->gridFields[$col]['isSortingHandle']) {
+			return;
+		}
+
+		// přesouvaná entita
+		$from = $em->find($meta->name, json_decode($from, TRUE));
+
+		// entita nenalezena
+		if (!$from) {
+			return;
+		}
+
+		// entita stojící před novým umístěním
+		if ($prev) {
+			$prev = $em->find($meta->name, json_decode($prev, TRUE));
+		}
+
+		// entita stojící za novým umístěním
+		if ($next) {
+			$next = $em->find($meta->name, json_decode($next, TRUE));
+		}
+
+		// alespoň $prev nebo $next musí existovat
+		if (!$prev && !$next) {
+			return;
+		}
+		// $prev neexistuje, použijeme $next
+		elseif (!$prev) {
+			$dest = $next;
+		}
+		// $next neexistuje, použijeme $prev
+		elseif (!$next) {
+			$dest = $prev;
+		}
+		// vybereme tu bližší
+		else {
+			$prevDist = abs($prev->$col - $from->$col);
+			$nextDist = abs($next->$col - $from->$col);
+			$dest = $prevDist < $nextDist ? $prev : $next;
+		}
+
+		if ($from->$col < $dest->$col) {
+			$min    = $from->$col;
+			$max    = $dest->$col;
+			$change = -1;
+		}
+		else {
+			$min    = $dest->$col;
+			$max    = $from->$col;
+			$change = +1;
+		}
+
+		// zrušíme pozici u přesouvané entity
+		ObjectMixin::set($from, $col, NULL);
+		$em->flush($from);
+
+		// změníme pozici u všech entit mezi starou a novou pozicí
+		$em->createQuery("
+			UPDATE {$meta->name} e
+			SET e.{$col} = e.{$col} + :change
+			WHERE e.{$col} BETWEEN :min AND :max
+			")->setParameters(array(
+				'change' => $change,
+				'min'    => $min,
+				'max'    => $max,
+			))->execute();
+
+		// nastavíme novou pozici u přesouvané entity
+		ObjectMixin::set($from, $col, $dest->$col);
+		$em->flush($from);
+
+		$this->presenter->terminate();
 
 	}
 
@@ -157,8 +249,27 @@ class Grid
 			$value = $entity->{$column->columnName};
 		}
 
+		// řadicí sloupec
+		if ($gridMeta && $gridMeta['isSortingHandle']) {
+			if ($this->sortColumn == $column->columnName) {
+				$key = json_encode($cm->getIdentifierValues($entity));
+				$html = Html::el('span')
+					->class('handle')
+					->setText('↕')
+					->{'data-key'}($key);
+			}
+			else {
+				$html = Html::el('abbr')
+					->setText('?')
+					->title($this->translator->translate(
+						'Aby se dalo měnit pořadí položek, ' .
+						'musí být seřazeny podle tohoto sloupce.'));
+			}
+			echo $html;
+			return;
+		}
 		// více položek
-		if ($value instanceof \Doctrine\ORM\PersistentCollection) {
+		elseif ($value instanceof Collection) {
 			$names = array();
 			$assocClassMeta = $this->em->getClassMetadata($assocMeta['targetEntity']);
 			foreach ($value as $assocEntity) {
@@ -168,7 +279,7 @@ class Grid
 			return;
 		}
 		// datum
-		elseif ($value instanceof \DateTime) {
+		elseif ($value instanceof DateTime) {
 			$value = $value->format($gridMeta
 				? $gridMeta['format'][$fieldMeta['type']]
 				: $column->getDateTimeFormat());
@@ -212,7 +323,11 @@ class Grid
 
 	public function render() {
 
-		if ($this->hasCheckboxes()) {
+		if ($this->isSortable) {
+			$this->presenter->addJQueryUiScript();
+		}
+
+		if ($this->isSortable || $this->hasCheckboxes()) {
 			$this->presenter->addScript('grid.js');
 		}
 

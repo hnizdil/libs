@@ -337,6 +337,10 @@ class EntityFormFactory
 				elseif ($type instanceof Types\DateTimeType) {
 					$control = $fieldsContainer->addDateTime($field);
 				}
+				elseif ($type instanceof \Hnizdil\DBAL\SortingType) {
+					$control = $fieldsContainer->addCheckbox($field);
+					$default = FALSE;
+				}
 				elseif ($type instanceof Types\IntegerType
 					|| $type instanceof Types\SmallIntType
 					|| $type instanceof Types\BigIntType) {
@@ -681,9 +685,42 @@ class EntityFormFactory
 			// boolean
 			if ($fieldMeta['type'] == 'boolean') {
 				switch ($value) {
-				case 0:  $value = FALSE; break;
-				case 1:  $value = TRUE;  break;
-				default: $value = NULL;  break;
+					case 0:  $value = FALSE; break;
+					case 1:  $value = TRUE;  break;
+					default: $value = NULL;  break;
+				}
+			}
+
+			// řazení entit
+			if ($fieldMeta['type'] == 'sorting') {
+				// entita má být první
+				if ($value) {
+					// nová hodnota sort bude aktuální minimální nebo 1
+					$minSort = $em->createQuery("
+						SELECT MIN(e.{$field})
+						FROM {$classMeta->name} e
+					")->setMaxResults(1)
+					->getSingleScalarResult() ?: 1;
+					// pokud entita není první, zvýšíme sort u všech entit
+					if ($minSort != $entity->$field) {
+						$value = $minSort;
+						$em->createQuery("
+							UPDATE {$classMeta->name} e
+							SET e.{$field} = e.{$field} + 1
+						")->execute();
+					}
+				}
+				// jde o novou entitu, zjistíme jí sort
+				elseif ($entity->isFresh()) {
+					$maxSort = $em->createQuery("
+						SELECT MAX(e.{$field})
+						FROM {$classMeta->name} e
+					")->setMaxResults(1)
+					->getSingleScalarResult() ?: 0;
+					$value = $maxSort + 1;
+				}
+				// jinak zůstane pořadí entity zachováno
+				else {
 				}
 			}
 

@@ -69,7 +69,21 @@
 	</div>
 {/block}
 
-{block tableheader}
+{block #table}
+<table n:class="gridito-table, $control->isSortable ? sortable">
+	<thead>
+		<tr>
+			{include #tableheader}
+		</tr>
+	</thead>
+	<tbody n:attr="data-sort-url-template => $control->isSortable
+		? $control->link('//applySorting!', '_from_', '_prev_', '_next_')">
+		{include #tablebody}
+	</tbody>
+</table>
+{/block}
+
+{block #tableheader}
 <th class="select-col"
 	n:if="$control->hasCheckboxes()">
 	<input type="checkbox" title="Invertovat výběr" />

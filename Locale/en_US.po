@@ -47,6 +47,9 @@ msgstr "Value “%s” is already used in another object."
 msgid "Nelze smazat objekt typu „%s“, protože na něm závisí existující objekty typu „%s“."
 msgstr "Object of type “%s” cannot be deleted, because there are objects of type “%s” that depend on it."
 
+msgid "Aby se dalo měnit pořadí položek, musí být seřazeny podle tohoto sloupce."
+msgstr "Table has to be sorted by this column to change items order."
+
 msgid "Položka „%%label“ není platná WWW adresa"
 msgstr "Field “%%label” is not a valid WWW address"
 
