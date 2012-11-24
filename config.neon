@@ -49,18 +49,22 @@ services:
 		factory: @nette.cache(Hnizdil)
 
 	em:
-		factory: Hnizdil\Doctrine\EntityManagerFactory::create(
-			@doctrineCache(Metadata)
-			@doctrineCache(Queries)
-			@eventManager
-			@annotationDriver
-			%doctrine.proxyDir%
-			Hnizdil\Proxy
-			%database%
-			%doctrine.autogenerateProxyClasses%
-			%doctrine.classMetadataFactoryName%
-			%productionMode%
-		)
+		factory: Doctrine\ORM\EntityManager::create
+		arguments:
+			- %database%
+			- @emConfig
+			- @eventManager
+
+	emConfig:
+		class: Doctrine\ORM\Configuration
+		setup:
+			- setProxyNamespace(Hnizdil\Proxy)
+			- setProxyDir(%doctrine.proxyDir%)
+			- setMetadataDriverImpl(@annotationDriver)
+			- setQueryCacheImpl(@doctrineCache(Queries))
+			- setMetadataCacheImpl(@doctrineCache(Metadata))
+			- setAutoGenerateProxyClasses(%doctrine.autogenerateProxyClasses%)
+			- setClassMetadataFactoryName(%doctrine.classMetadataFactoryName%)
 
 	annotationDriver:
 		factory: Hnizdil\Doctrine\ORM\Mapping\Driver\AnnotationDriver(
