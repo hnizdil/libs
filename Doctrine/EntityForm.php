@@ -50,13 +50,15 @@ class EntityForm
 	}
 
 	private $callbacks = array(
-		'postAttached'  => array(),
-		'preFlush'      => array(),
-		'postFlush'     => array(),
-		'postDelete'    => array(),
-		'prePersist'    => array(),
-		'postContainer' => array(),
-		'virtualField'  => array(),
+		'postAttached'        => array(),
+		'preFlush'            => array(),
+		'postFlush'           => array(),
+		'postDelete'          => array(),
+		'prePersist'          => array(),
+		'postContainer'       => array(),
+		'virtualField'        => array(),
+		'notUniqueException'  => array(),
+		'foreignKeyException' => array(),
 	);
 
 	public function processData(SubmitButton $button) {
@@ -80,7 +82,7 @@ class EntityForm
 		// zavolání callbacku
 		if ($callback = @$this->callbacks[$method]) {
 			if ($callback->isCallable()) {
-				$callback->invokeArgs($args);
+				return $callback->invokeArgs($args);
 			}
 			else {
 				e::callbackNotCallable($method);
@@ -88,7 +90,7 @@ class EntityForm
 		}
 		// zavoláme rodiče
 		elseif ($callback === NULL) {
-			parent::__call($method, $args);
+			return parent::__call($method, $args);
 		}
 		// callback nebyl nastaven
 		else {

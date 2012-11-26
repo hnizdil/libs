@@ -2,6 +2,7 @@
 
 namespace Hnizdil\Factory;
 
+use Exception;
 use PDOException;
 use InvalidArgumentException;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -480,6 +481,10 @@ class EntityFormFactory
 			// duplicitní hodnota pro unikátní klíč
 			if ($e->errorInfo[1] == 1062) {
 
+				if ($form->notUniqueException($e, $entity, $form)) {
+					return FALSE;
+				}
+
 				$pattern = "~Duplicate entry '(.*?)' for key '(.*?)'~";
 				preg_match($pattern, $e->getMessage(), $matches);
 				list(, $value, $name) = $matches;
@@ -544,6 +549,10 @@ class EntityFormFactory
 
 				// nelze smazat kvůli cizímu klíči
 				if ($e->errorInfo[1] == 1451) {
+
+					if ($form->foreignKeyException($e, $entity, $form)) {
+						return FALSE;
+					}
 
 					// zjistíme postižené tabulky
 					preg_match('~
