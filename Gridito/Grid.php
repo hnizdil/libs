@@ -10,7 +10,6 @@ use Doctrine\Common\Collections\Collection;
 use Gridito\Column;
 use Hnizdil\Factory\TranslatorFactory;
 use Hnizdil\Nette\Forms\Controls\DateInput;
-use Hnizdil\Nette\Localization\NoTranslator;
 use Hnizdil\ORM\AbstractEntity;
 use Nette\ObjectMixin;
 use Nette\Application\UI\Form;
@@ -62,7 +61,6 @@ class Grid
 		EntityManager             $em,
 		DoctrineQueryBuilderModel $model,
 		TranslatorFactory         $translatorFactory,
-		NoTranslator              $noTranslator,
 		                          $entityClassName
 	) {
 
@@ -75,15 +73,8 @@ class Grid
 
 		$this->setHighlightOrderedColumn(FALSE);
 
-		try {
-			$translator = $translatorFactory->create();
-		}
-		catch (InvalidArgumentException $e) {
-			$translator = $noTranslator;
-		}
-
-		$this->template->setTranslator($translator);
-		$this->translator = $translator;
+		$this->translator = $translatorFactory->create();
+		$this->template->setTranslator($this->translator);
 
 		foreach ($this->classMeta->gridFields as $field => $fieldMeta) {
 			if ($fieldMeta['autoAdd']) {

@@ -4,18 +4,16 @@ namespace Hnizdil\Factory;
 
 use Exception;
 use PDOException;
-use InvalidArgumentException;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\DBAL\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Hnizdil\Doctrine\EntityForm;
 use Hnizdil\Factory\EntityFormFactoryException as e;
 use Hnizdil\Nette\Forms\EntityContainer;
-use Hnizdil\Nette\Localization\NoTranslator;
 use Hnizdil\ORM\AbstractEntity;
 use Hnizdil\Service\WwwPathGetter;
+use Hnizdil\Doctrine\EntityForm;
 use Kdyby\Forms\Containers\Replicator;
 use Nette\ComponentModel\IContainer as IComponentContainer;
 use Nette\DI\IContainer;
@@ -30,9 +28,9 @@ class EntityFormFactory
 
 	protected $em;
 	protected $container;
+	protected $translatorFactory;
 	protected $entityFactory;
 	protected $wwwPathGetter;
-	protected $translator;
 	protected $uploads = array();
 
 	public function __construct(
@@ -40,27 +38,22 @@ class EntityFormFactory
 		ObjectManager     $em,
 		TranslatorFactory $translatorFactory,
 		EntityFactory     $entityFactory,
-		WwwPathGetter     $wwwPathGetter,
-		NoTranslator      $noTranslator
+		WwwPathGetter     $wwwPathGetter
 	) {
 
-		try {
-			$this->translator = $translatorFactory->create();
-		}
-		catch (InvalidArgumentException $e) {
-			$this->translator = $noTranslator;
-		}
-
-		$this->em            = $em;
-		$this->container     = $container;
-		$this->entityFactory = $entityFactory;
-		$this->wwwPathGetter = $wwwPathGetter;
+		$this->em                = $em;
+		$this->container         = $container;
+		$this->translatorFactory = $translatorFactory;
+		$this->entityFactory     = $entityFactory;
+		$this->wwwPathGetter     = $wwwPathGetter;
 
 	}
 
 	public function create($entity, array $callbacks) {
 
 		$form = new EntityForm;
+
+		$form->translator = $this->translatorFactory->create();
 
 		$form->setEntity($entity);
 
@@ -72,15 +65,11 @@ class EntityFormFactory
 			->onClick[] = array($this, 'processData');
 
 		if ($entity instanceof AbstractEntity && !$entity->isFresh()) {
-			$form->addSubmit('delete', 'Smazat')
+			$form->addSubmit('delete', 'Odstranit')
 				->setValidationScope(FALSE)
 				->onClick[] = array($this, 'doDelete');
 			$form['delete']->getControlPrototype()->{'data-confirm'}(
-				$this->translator->translate('Skutečně smazat?'));
-		}
-
-		if ($this->translator) {
-			$form->setTranslator($this->translator);
+				$form->translator->translate('Skutečně smazat?'));
 		}
 
 		$form->getElementPrototype()->class('entity-form');
@@ -407,8 +396,11 @@ class EntityFormFactory
 				}
 
 				if ($fieldMeta['length']) {
+					// délka musí být jako pole, jinak ji
+					// Nette\Forms\Rules::formatMessage() chybně použije
+					// k rozeznání jednotného/množného čísla
 					$anotherRules[] = array(
-						$form::MAX_LENGTH, NULL, $fieldMeta['length']);
+						$form::MAX_LENGTH, NULL, array($fieldMeta['length']));
 				}
 
 				if ($ruleFilled) {
@@ -494,7 +486,7 @@ class EntityFormFactory
 
 				if ($formMeta || $gridMeta) {
 					$form->addError(sprintf(
-						$this->translator->translate(
+						$form->translator->translate(
 							'Objekt mající položku „%s“ ' .
 							'rovnu „%s“ už existuje.'),
 						$formMeta['title'] ?: $gridMeta['title'] ?: $name,
@@ -502,7 +494,7 @@ class EntityFormFactory
 				}
 				else {
 					$form->addError(sprintf(
-						$this->translator->translate(
+						$form->translator->translate(
 							'Hodnota „%s“ je již použita u jiného objektu.'),
 						$value));
 				}
@@ -582,7 +574,7 @@ class EntityFormFactory
 					}
 
 					$form->addError(sprintf(
-						$this->translator->translate(
+						$form->translator->translate(
 							'Nelze smazat objekt typu „%s“, protože na něm ' .
 							'závisí existující objekty typu „%s“.'),
 						$refClass,

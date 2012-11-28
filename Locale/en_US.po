@@ -53,7 +53,7 @@ msgstr "Table has to be sorted by this column to change items order."
 msgid "Položka „%%label“ není platná WWW adresa"
 msgstr "Field “%%label” is not a valid WWW address"
 
-msgid "Položka „%%%label“ není platná e-mailová adresa"
+msgid "Položka „%%label“ není platná e-mailová adresa"
 msgstr "Field “%%label” is not a valid e-mail address"
 
 msgid "Nahraný soubor „%%label“ musí být JPG, PNG nebo GIF obrázek"

@@ -101,7 +101,10 @@ services:
 		class: Hnizdil\Nette\Localization\NoTranslator
 
 	translatorFactory:
-		class: Hnizdil\Factory\TranslatorFactory(%libsDir%/Hnizdil/Locale)
+		class: Hnizdil\Factory\TranslatorFactory
+		arguments:
+			- %libsDir%/Hnizdil/Locale
+			- @noTranslator
 
 	templateFactory:
 		class: Hnizdil\Factory\TemplateFactory
@@ -121,6 +124,11 @@ services:
 		arguments:
 			- @hnizdilCache::derive(BusinessDate)
 
+	formFactory:
+		class: Hnizdil\Factory\FormFactory
+		arguments:
+			- @translatorFactory
+
 	entityFormFactory:
 		class: Hnizdil\Factory\EntityFormFactory
 		arguments:
@@ -129,7 +137,6 @@ services:
 			- @translatorFactory
 			- @entityFactory
 			- @wwwPathGetter
-			- @noTranslator
 
 	entityFactory:
 		class: Hnizdil\Factory\EntityFactory
@@ -162,13 +169,20 @@ factories:
 			@em
 			@griditoModel(%entityClassName%)
 			@translatorFactory
-			@noTranslator
 			%entityClassName%
 		)
 
+	form:
+		factory: @formFactory::create
+		parameters:
+			parent: null
+			name: null
+		arguments:
+			- %parent%
+			- %name%
+
 	entityForm:
-		factory:
-			@entityFormFactory::create
+		factory: @entityFormFactory::create
 		parameters:
 			- entity
 			callbacks: []
@@ -189,3 +203,10 @@ factories:
 			relativePath: null
 		arguments:
 			- %relativePath%
+
+	translator:
+		factory: @translatorFactory::create
+		parameters:
+			locale: null
+		arguments:
+			- %locale%
