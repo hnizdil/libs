@@ -1,6 +1,7 @@
 <?php
 
 use Nette\Framework;
+use Nette\Http\UrlScript;
 use Nette\Config\Configurator;
 use Doctrine\DBAL\Types\Type;
 use Hnizdil\Service\ClassLoader;
@@ -23,7 +24,9 @@ unset($loader);
 Framework::$iAmUsingBadHost = !function_exists('ini_set');
 
 if (!isset($configSection)) {
-	$configSection = getenv('NETTE_CONFIG_SECTION');
+	$configSection = php_sapi_name() === 'cli'
+		? php_uname('n')
+		: getenv('NETTE_CONFIG_SECTION');
 }
 
 $configurator = new Configurator;
@@ -48,7 +51,12 @@ $container = $configurator->createContainer();
 
 unset($configurator);
 
-$url = $container->httpRequest->getUrl();
+if (php_sapi_name() === 'cli' && isset($container->parameters['baseUri'])) {
+	$url = new UrlScript($container->parameters['baseUri']);
+}
+else {
+	$url = $container->httpRequest->getUrl();
+}
 $container->parameters['libsDir']  = LIBS_DIR;
 $container->parameters['baseUri']  = $url->baseUrl;
 $container->parameters['basePath'] = $url->basePath;

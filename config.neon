@@ -38,6 +38,9 @@ nette:
 
 services:
 
+	router:
+		class: Hnizdil\Nette\Application\Routers\CliRouteList
+
 	#nette.userStorage:
 		#class: Hnizdil\Nette\Http\UserStorage
 
