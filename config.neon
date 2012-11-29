@@ -109,9 +109,7 @@ services:
 	templateFactory:
 		class: Hnizdil\Factory\TemplateFactory
 		arguments:
-			- @application::getPresenter()
 			- @nette.template
-			- %appDir%
 			- %templateDir%
 
 	wwwPathGetter:
@@ -200,9 +198,9 @@ factories:
 	template:
 		factory: @templateFactory::create
 		parameters:
-			relativePath: null
+			path: null
 		arguments:
-			- %relativePath%
+			- %path%
 
 	translator:
 		factory: @translatorFactory::create
