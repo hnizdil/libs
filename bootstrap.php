@@ -25,13 +25,13 @@ $loader->register();
 // Nette se obejde bez ini_set, pokud je to potřeba
 Framework::$iAmUsingBadHost = !function_exists('ini_set');
 
-// v CLI zkusíme jako section hostname
-if (PHP_SAPI === 'cli') {
-	$configSection = php_uname('n');
-}
 // section může být nadefinována jako proměnná prostředí
-elseif (getenv('NETTE_CONFIG_SECTION')) {
+if (getenv('NETTE_CONFIG_SECTION')) {
 	$configSection = getenv('NETTE_CONFIG_SECTION');
+}
+// v CLI zkusíme jako section hostname
+elseif (PHP_SAPI === 'cli') {
+	$configSection = php_uname('n');
 }
 // jinak jsme v produkci
 else {
