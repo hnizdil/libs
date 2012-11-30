@@ -46,4 +46,10 @@ class MoneyType
 
 	}
 
+	public function getName() {
+
+		return 'money';
+
+	}
+
 }

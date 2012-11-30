@@ -261,7 +261,7 @@ class EntityFormFactory
 				$anotherRules = array();
 				$type = Types\Type::getType($fieldMeta['type']);
 
-				if ($type instanceof \Hnizdil\DBAL\IntToStringType) {
+				if ($type instanceof \Hnizdil\DBAL\EnumType) {
 					if ($formMeta['control'] == 'RadioList') {
 						$items = $type->getSelectItems();
 						$control = $fieldsContainer->addRadioList($field, NULL, $items);
@@ -276,9 +276,7 @@ class EntityFormFactory
 							$field, NULL, $type->getSelectItems());
 					}
 				}
-				elseif ($type instanceof \Hnizdil\DBAL\EnumType
-					||  $type instanceof \Hnizdil\DBAL\MapType
-				) {
+				elseif ($type instanceof \Hnizdil\DBAL\MapType) {
 					$items = $type->getSelectItems();
 					$fieldMeta['length'] = NULL;
 					if ($formMeta['control'] == 'Hidden') {
@@ -298,9 +296,7 @@ class EntityFormFactory
 					}
 					else {
 						$control = $fieldsContainer->addSelect($field, NULL, $items);
-						if ($ruleFilled) {
-						}
-						else {
+						if (!$ruleFilled) {
 							$control->setPrompt($formMeta['controlPrompt']);
 						}
 					}

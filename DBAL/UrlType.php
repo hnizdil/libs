@@ -8,11 +8,10 @@ class UrlType
 	extends StringType
 {
 
-    /** @override */
-    public function getName() {
+	public function getName() {
 
-        return 'url';
+		return 'url';
 
-    }
+	}
 
 }

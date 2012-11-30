@@ -9,8 +9,6 @@ class SortingType
 	extends IntegerType
 {
 
-	const SORTING = 'sorting';
-
 	public function getSQLDeclaration(
 		array $fieldDeclaration,
 		AbstractPlatform $platform
@@ -25,7 +23,7 @@ class SortingType
 
 	public function getName() {
 
-		return self::SORTING;
+		return 'sorting';
 
 	}
 

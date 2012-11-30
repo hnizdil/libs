@@ -8,4 +8,10 @@ class FileType
 	extends StringType
 {
 
+	public function getName() {
+
+		return 'file';
+
+	}
+
 }

@@ -78,10 +78,11 @@ $container->parameters['baseUri']  = $url->baseUrl;
 $container->parameters['basePath'] = $url->basePath;
 
 // zaregistrování nadefinovaných doctrine typů
-foreach ($container->parameters['doctrine']['dataTypes']
-	as $type => $dataTypeClass
-) {
+$types    = $container->parameters['doctrine']['dataTypes'];
+$platform = $container->em->getConnection()->getDatabasePlatform();
+foreach ($types as $type => $dataTypeClass) {
 	Type::addType($type, $dataTypeClass);
+	$platform->markDoctrineTypeCommented(Type::getType($type));
 }
 
 // odplevelení globálního prostoru kromě $container,
@@ -91,5 +92,7 @@ unset (
 	$configSection,
 	$configurator,
 	$url,
+	$types,
+	$platform,
 	$type,
 	$dataTypeClass);
