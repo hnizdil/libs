@@ -45,11 +45,12 @@
 			<div class="right" n:if="$entireFilterIsInHeader">
 				{$form['filter']['reset']->control->value("Vymazat hledání")}
 			</div>
+			{block #leftButtons}
 			<div class="left"
 				n:if="$control->hasToolbar() || $control->hasCheckboxes()">
 				{if $control->hasCheckboxes() && $control->getModel()->count() > 0}
 					{foreach $control->getMultiActionNames() as $name}
-						{input "multi_{$name}" class => "button"}
+						{$_form["multi_{$name}"]->control->class("button", TRUE)}
 					{/foreach}
 				{/if}
 				<span class="button"
@@ -57,6 +58,7 @@
 					{control $button}
 				</span>
 			</div>
+			{/block}
 		</div>
 		<div class="table">
 			{include #data}
