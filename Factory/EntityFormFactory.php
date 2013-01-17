@@ -392,11 +392,11 @@ class EntityFormFactory
 				}
 
 				if ($fieldMeta['length']) {
-					// délka musí být jako pole, jinak ji
+					// délka musí být jako float, jinak ji
 					// Nette\Forms\Rules::formatMessage() chybně použije
 					// k rozeznání jednotného/množného čísla
 					$anotherRules[] = array(
-						$form::MAX_LENGTH, NULL, array($fieldMeta['length']));
+						$form::MAX_LENGTH, NULL, (float)$fieldMeta['length']);
 				}
 
 				if ($ruleFilled) {
