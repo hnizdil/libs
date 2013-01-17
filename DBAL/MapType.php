@@ -20,6 +20,10 @@ abstract class MapType
 
 	public function convertToPHPValue($value, AbstractPlatform $platform) {
 
+		if ($value === NULL || $value === '') {
+			return $value;
+		}
+
 		if (!array_key_exists($value, $this->map)) {
 			ConversionException::conversionFailed($value, __CLASS__);
 		}

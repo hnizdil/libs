@@ -20,6 +20,10 @@ abstract class EnumType
 
 	public function convertToPHPValue($value, AbstractPlatform $platform) {
 
+		if ($value === NULL || $value === '') {
+			return $value;
+		}
+
 		$value = (int) $value;
 
 		if (!array_key_exists($value, $this->values)) {
