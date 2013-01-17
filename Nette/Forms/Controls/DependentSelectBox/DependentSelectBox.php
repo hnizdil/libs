@@ -13,8 +13,6 @@ use LogicException;
 use Nette\NotSupportedException;
 use Nette\Forms\Container as FormContainer;
 
-// \Nette\Forms\FormContainer::extensionMethod("addDependentSelectBox", "DependentSelectBox\DependentSelectBox::formAddDependentSelectBox");
-
 class DependentSelectBox extends SelectBox {
 
 // <editor-fold defaultstate="collapsed" desc="variables">
@@ -403,7 +401,7 @@ class DependentSelectBox extends SelectBox {
 		if(NETTE_PACKAGE == 'PHP 5.2')
 			FormContainer::extensionMethod("FormContainer::$methodName", array("DependentSelectBox", "Container_prototype_addDependentSelectBox"));
 		else
-			FormContainer::extensionMethod($methodName, "DependentSelectBox\DependentSelectBox::Container_prototype_addDependentSelectBox");
+			FormContainer::extensionMethod($methodName, __CLASS__ . "::formAddDependentSelectBox");
 	}
 
 // </editor-fold>

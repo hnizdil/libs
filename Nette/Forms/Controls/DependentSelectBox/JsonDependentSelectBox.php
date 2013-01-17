@@ -12,8 +12,6 @@ use Nette\Forms\Container as FormContainer;
 use Nette\Application\UI\Presenter;
 use Nette\InvalidStateException;
 
-// \Nette\Forms\FormContainer::extensionMethod("addJsonDependentSelectBox", "DependentSelectBox\JsonDependentSelectBox::formAddJsonDependentSelectBox");
-
 class JsonDependentSelectBox extends DependentSelectBox
 {
 
@@ -66,7 +64,7 @@ class JsonDependentSelectBox extends DependentSelectBox
 		if(NETTE_PACKAGE == 'PHP 5.2')
 			FormContainer::extensionMethod("FormContainer::$methodName", array("JsonDependentSelectBox", "Container_prototype_addJsonDependentSelectBox"));
 		else
-			FormContainer::extensionMethod($methodName, "DependentSelectBox\JsonDependentSelectBox::Container_prototype_addJsonDependentSelectBox");
+			FormContainer::extensionMethod($methodName, __CLASS__ . "::formAddJsonDependentSelectBox");
 	}
 	
 }
