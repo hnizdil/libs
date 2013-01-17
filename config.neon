@@ -199,8 +199,10 @@ factories:
 		factory: @templateFactory::create
 		parameters:
 			path: null
+			presenter: null
 		arguments:
 			- %path%
+			- %presenter%
 
 	translator:
 		factory: @translatorFactory::create
