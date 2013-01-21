@@ -41,17 +41,32 @@ else {
 // configurator se vytváří funkcí, protože může být
 // kvůli neexistující sekci nutné vytvořit ho znovu
 $getConfigurator = function ($section) {
+
+	$tempDirPathFile = realpath(APP_DIR . '/config/temp-dir-path.txt');
+	if ($tempDirPathFile) {
+		$tempDirPath = trim(file_get_contents($tempDirPathFile));
+	}
+	else {
+		$tempDirPath = APP_DIR . '/../temp';
+	}
+	if (!is_dir($tempDirPath) && !@mkdir($tempDirPath)) {
+		throw new Exception("Temp dir '{$tempDirPath}' could not be created.");
+	}
+
 	$configurator = new Configurator;
 	$configurator->setDebugMode($section !== 'production');
-	$configurator->setTempDirectory(APP_DIR . '/../temp');
+	$configurator->setTempDirectory($tempDirPath);
 	$configurator->enableDebugger(APP_DIR . '/../log', 'hnizdil@gmail.com');
 	$configurator->addParameters(array(
 		'appDir'  => APP_DIR,
 		'wwwDir'  => WWW_DIR,
 		'libsDir' => LIBS_DIR,
 	));
+
 	$configurator->addConfig(APP_DIR . '/config/config.neon', $section);
+
 	return $configurator;
+
 };
 
 // v případě CLI v produkci neznáme hostname, takže
