@@ -2,6 +2,7 @@
 
 namespace Hnizdil\DBAL;
 
+use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Types\IntegerType;
 use Doctrine\DBAL\Types\ConversionException;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
@@ -53,6 +54,23 @@ abstract class EnumType
 	public function getSelectItems() {
 
 		return array_combine($this->values, $this->values);
+
+	}
+
+	public static function revert($constant) {
+
+		static $instance = NULL;
+		static $reverted = array();
+
+		if (!$instance) {
+			$instance = Type::getType(static::NAME);
+		}
+
+		if (!$reverted) {
+			$reverted = array_flip($instance->getValues());
+		}
+
+		return $reverted[constant(get_class($instance) . '::' . $constant)];
 
 	}
 
