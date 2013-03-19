@@ -283,20 +283,20 @@ class EntityFormFactory
 						$control = $fieldsContainer->addHidden($field);
 					}
 					elseif ($formMeta['control'] == 'RadioList') {
-						if (!$ruleFilled) {
+						if (!$ruleFilled || $formMeta['forcePrompt']) {
 							$items = array('' => $formMeta['controlPrompt']) + $items;
 						}
 						$control = $fieldsContainer
 							->addRadioList($field, NULL, $items);
 						$control->getSeparatorPrototype()
 							->setName('span class=radio-separator');
-						if (!$ruleFilled) {
+						if (!$ruleFilled || $formMeta['forcePrompt']) {
 							$control->setValue($formMeta['controlPrompt']);
 						}
 					}
 					else {
 						$control = $fieldsContainer->addSelect($field, NULL, $items);
-						if (!$ruleFilled) {
+						if (!$ruleFilled || $formMeta['forcePrompt']) {
 							$control->setPrompt($formMeta['controlPrompt']);
 						}
 					}

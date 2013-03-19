@@ -28,6 +28,11 @@ class Input {
 	public $controlPrompt = '– vyberte –';
 
 	/**
+	 * @var boolean
+	 */
+	public $forcePrompt = false;
+
+	/**
 	 * @var string
 	 */
 	public $optionalControlPrompt = '';
