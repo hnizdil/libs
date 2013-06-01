@@ -47,16 +47,18 @@ $getConfigurator = function ($section) {
 		$tempDirPath = trim(file_get_contents($tempDirPathFile));
 	}
 	else {
-		$tempDirPath = APP_DIR . '/../temp';
+		$tempDirPath = defined('TEMP_DIR') ? TEMP_DIR : APP_DIR . '/../temp';
 	}
 	if (!is_dir($tempDirPath) && !@mkdir($tempDirPath)) {
 		throw new Exception("Temp dir '{$tempDirPath}' could not be created.");
 	}
 
+	$logDir = defined('LOG_DIR') ? LOG_DIR : APP_DIR . '/../log';
+
 	$configurator = new Configurator;
 	$configurator->setDebugMode($section !== 'production');
 	$configurator->setTempDirectory($tempDirPath);
-	$configurator->enableDebugger(APP_DIR . '/../log', 'hnizdil@gmail.com');
+	$configurator->enableDebugger($logDir, 'hnizdil@gmail.com');
 	$configurator->addParameters(array(
 		'appDir'  => APP_DIR,
 		'wwwDir'  => WWW_DIR,
