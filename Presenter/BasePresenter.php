@@ -61,6 +61,7 @@ abstract class BasePresenter
 		$template->registerHelper('json', 'json_encode');
 
 		$template->shared = __DIR__ . '/../templates';
+		$template->basePath = $this->context->parameters['basePath'];
 
 		return $template;
 
