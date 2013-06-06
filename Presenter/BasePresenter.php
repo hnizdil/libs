@@ -70,8 +70,8 @@ abstract class BasePresenter
 	protected function createComponentHeadjs($name) {
 
 		$headjs = new Headjs($this, $name);
-		$headjs->package = Headjs::PACKAGE_LOAD;
-		$headjs->javascriptDir = '/js';
+		$headjs->package = 'lib/' . Headjs::PACKAGE_LOAD;
+		$headjs->javascriptDir = $this->context->parameters['basePath'] . 'js';
 
 		$headjs->setCache(
 			$this->context->nette->createCache('Component')->derive($name));
