@@ -20,4 +20,10 @@ class CliPresenter
 
 	}
 
+	protected function beforeRender() {
+
+		$this->terminate();
+
+	}
+
 }
