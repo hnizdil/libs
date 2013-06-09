@@ -122,6 +122,9 @@ services:
 		arguments:
 			- @hnizdilCache::derive(BusinessDate)
 
+	downloader:
+		class: Hnizdil\Service\Downloader
+
 	formFactory:
 		class: Hnizdil\Factory\FormFactory
 		arguments:
