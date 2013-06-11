@@ -31,21 +31,24 @@ class EntityFormFactory
 	protected $translatorFactory;
 	protected $entityFactory;
 	protected $wwwPathGetter;
+	protected $openingHoursFactory;
 	protected $uploads = array();
 
 	public function __construct(
-		IContainer        $container,
-		ObjectManager     $em,
-		TranslatorFactory $translatorFactory,
-		EntityFactory     $entityFactory,
-		WwwPathGetter     $wwwPathGetter
+		IContainer          $container,
+		ObjectManager       $em,
+		TranslatorFactory   $translatorFactory,
+		EntityFactory       $entityFactory,
+		WwwPathGetter       $wwwPathGetter,
+		OpeningHoursFactory $openingHoursFactory
 	) {
 
-		$this->em                = $em;
-		$this->container         = $container;
-		$this->translatorFactory = $translatorFactory;
-		$this->entityFactory     = $entityFactory;
-		$this->wwwPathGetter     = $wwwPathGetter;
+		$this->em                  = $em;
+		$this->container           = $container;
+		$this->translatorFactory   = $translatorFactory;
+		$this->entityFactory       = $entityFactory;
+		$this->wwwPathGetter       = $wwwPathGetter;
+		$this->openingHoursFactory = $openingHoursFactory;
 
 	}
 
@@ -313,6 +316,9 @@ class EntityFormFactory
 				elseif ($type instanceof \Hnizdil\DBAL\EmailType) {
 					$control = $fieldsContainer->addText($field);
 					$anotherRules[] = array($form::EMAIL);
+				}
+				elseif ($type instanceof \Hnizdil\DBAL\OpeningHoursType) {
+					$control = $fieldsContainer->addOpeningHours($field, $this->openingHoursFactory);
 				}
 				elseif ($type instanceof Types\DateType) {
 					$control = $fieldsContainer->addDate($field);

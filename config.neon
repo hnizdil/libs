@@ -4,6 +4,8 @@ parameters:
 
 	develEmail:
 
+	weekStartsOnSunday: false
+
 	doctrine:
 		entityDir: %appDir%/models/Entity
 		proxyDir: %appDir%/models/Proxy
@@ -16,6 +18,7 @@ parameters:
 			email: Hnizdil\DBAL\EmailType
 			password: Hnizdil\DBAL\PasswordType
 			sorting: Hnizdil\DBAL\SortingType
+			openingHours: Hnizdil\DBAL\OpeningHoursType
 
 php:
 
@@ -106,6 +109,11 @@ services:
 			- %libsDir%/Hnizdil/Locale
 			- @noTranslator
 
+	openingHoursFactory:
+		class: Hnizdil\Factory\OpeningHoursFactory
+		arguments:
+			- %weekStartsOnSunday%
+
 	templateFactory:
 		class: Hnizdil\Factory\TemplateFactory
 		arguments:
@@ -138,6 +146,7 @@ services:
 			- @translatorFactory
 			- @entityFactory
 			- @wwwPathGetter
+			- @openingHoursFactory
 
 	entityFactory:
 		class: Hnizdil\Factory\EntityFactory
@@ -213,3 +222,10 @@ factories:
 			locale: null
 		arguments:
 			- %locale%
+
+	day:
+		parameters:
+			- day
+		class: Hnizdil\Common\Day(
+			%day%
+		)

@@ -16,6 +16,7 @@ abstract class BasePresenter
 		Controls\DateInput::register();
 		Controls\MoneyInput::register();
 		Controls\CheckboxList::register();
+		Controls\OpeningHours::register();
 		Controls\DependentSelectBox\DependentSelectBox::register();
 		Controls\DependentSelectBox\JsonDependentSelectBox::register();
 		\Kdyby\Forms\Containers\Replicator::register();
