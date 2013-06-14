@@ -19,6 +19,7 @@ parameters:
 			password: Hnizdil\DBAL\PasswordType
 			sorting: Hnizdil\DBAL\SortingType
 			openingHours: Hnizdil\DBAL\OpeningHoursType
+			sexTypeEnum: Hnizdil\Doctrine\DBAL\Types\SexTypeEnum # TODO: přesunout i ostatní typy
 
 php:
 
