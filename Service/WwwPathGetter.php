@@ -21,7 +21,7 @@ class WwwPathGetter
 
 		// path does not exist
 		if (!$absolutePath) {
-			e::notFound($path);
+			return null;
 		}
 
 		// path is not in WWW dir
