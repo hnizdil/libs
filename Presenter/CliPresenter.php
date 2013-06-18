@@ -13,10 +13,16 @@ class CliPresenter
 	extends Presenter
 {
 
-	protected function getHttpRequest() {
+	public function getHttpRequest() {
 
 		return new Request(
 			new UrlScript($this->context->parameters['baseUri']));
+
+	}
+
+	public function createTemplate($class = null) {
+
+		return parent::createTemplate($class);
 
 	}
 

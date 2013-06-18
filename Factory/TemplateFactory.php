@@ -25,7 +25,12 @@ class TemplateFactory
 
 	public function create($path = NULL, Presenter $presenter = NULL) {
 
-		$template = clone $this->template;
+		if ($presenter) {
+			$template = $presenter->createTemplate();
+		}
+		else {
+			$template = clone $this->template;
+		}
 
 		if ($path) {
 
