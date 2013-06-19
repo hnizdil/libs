@@ -135,6 +135,9 @@ services:
 	downloader:
 		class: Hnizdil\Service\Downloader
 
+	springTimeFormRenderer:
+		class: Hnizdil\Nette\Forms\Rendering\SpringTimeFormRenderer
+
 	formFactory:
 		class: Hnizdil\Factory\FormFactory
 		arguments:
