@@ -37,7 +37,7 @@ class MySqlSessionStorage
 	 */
 	private $dbh;
 
-	public function __construct($host, $user, $pass, $db, $table = 'sessions') {
+	public function __construct($host, $user, $pass, $db, $table) {
 
 		$this->host  = $host;
 		$this->user  = $user;
@@ -152,6 +152,36 @@ class MySqlSessionStorage
 			time() - $maxlifetime);
 
 		return mysql_query($sql, $this->dbh);
+
+	}
+
+	public function setHost($host) {
+
+		$this->host = $host;
+
+	}
+
+	public function setUser($user) {
+
+		$this->user = $user;
+
+	}
+
+	public function setPass($pass) {
+
+		$this->pass = $pass;
+
+	}
+
+	public function setDb($db) {
+
+		$this->db = $db;
+
+	}
+
+	public function setTable($table) {
+
+		$this->table = $table;
 
 	}
 
