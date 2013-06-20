@@ -6,6 +6,15 @@ parameters:
 
 	weekStartsOnSunday: false
 
+	database:
+		host: localhost
+		driver: pdo_mysql
+		charset: utf8
+		driverOptions:
+			# because charset is silently ignored prior to PHP 5.3.6
+			# 1002: PDO::MYSQL_ATTR_INIT_COMMAND
+			1002: set names %database.charset%
+
 	doctrine:
 		entityDir: %appDir%/models/Entity
 		proxyDir: %appDir%/models/Proxy
