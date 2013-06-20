@@ -141,7 +141,8 @@ class OpeningHours
 	{
 
 		Container::extensionMethod('addOpeningHours', function (Container $_this, $name, $openingHoursFactory, $label = null) {
-			$control = new self($label);
+			$class   = __CLASS__;
+			$control = new $class($label);
 			$control->setOpeningHoursFactory($openingHoursFactory);
 			return $_this[$name] = $control;
 		});
