@@ -2,6 +2,7 @@
 
 namespace Hnizdil\Presenter;
 
+use Nette\Caching\Cache;
 use Kdyby\Component\Headjs;
 use Hnizdil\Nette\Forms\Controls;
 
@@ -81,6 +82,14 @@ abstract class BasePresenter
 		$headjs->addScript('netteForms.js');
 
 		return $headjs;
+
+	}
+
+	public function actionClearCache() {
+
+		$this->context->cacheStorage->clean(array(Cache::ALL => true));
+
+		$this->terminate();
 
 	}
 
