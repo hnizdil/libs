@@ -2,31 +2,20 @@
 
 namespace Hnizdil\Doctrine;
 
+use Nette\Caching\Cache as NetteCache;
+use Doctrine\Common\Cache\CacheProvider;
+
 class Cache
-	extends \Doctrine\Common\Cache\CacheProvider
+	extends CacheProvider
 {
 
-	const CACHE_KEY = 'data';
-
-	private $netteCache = NULL;
+	private $cache;
 
 	private $data = array();
 
-	public function __construct(\Nette\Caching\Cache $cache, $namespace) {
+	public function __construct(NetteCache $cache, $namespace) {
 
-		$this->netteCache = $cache->derive($namespace);
-
-		$this->data = $this->netteCache->load(self::CACHE_KEY);
-
-		if ($this->data === NULL) {
-			$this->data = array();
-		}
-
-	}
-
-	public function __destruct() {
-
-		$this->netteCache->save(self::CACHE_KEY, $this->data);
+		$this->cache = $cache->derive($namespace);
 
 	}
 
@@ -35,7 +24,13 @@ class Cache
 	 */
 	protected function doFetch($id) {
 
-		return array_key_exists($id, $this->data) ? $this->data[$id] : FALSE;
+		$entry = $this->cache->load($id);
+
+		if ($entry === null) {
+			$entry = false;
+		}
+
+		return $entry;
 
 	}
 
@@ -44,16 +39,22 @@ class Cache
 	 */
 	protected function doContains($id) {
 
-		return array_key_exists($id, $this->data);
+		return $this->doFetch($id) !== false;
 
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	protected function doSave($id, $data, $lifeTime = 0) {
+	protected function doSave($id, $data, $lifeTime = false) {
 
-		$this->data[$id] = $data;
+		$options = array();
+
+		if ($lifeTime !== 0) {
+			$options[NetteCache::EXPIRE] = $lifeTime;
+		}
+
+		$this->cache->save($id, $data, $options);
 
 		return TRUE;
 
@@ -64,7 +65,7 @@ class Cache
 	 */
 	protected function doDelete($id) {
 
-		unset($this->data[$id]);
+		$this->cache->remove($id);
 
 		return TRUE;
 
@@ -75,7 +76,9 @@ class Cache
 	 */
 	protected function doFlush() {
 
-		$this->data = array();
+		$this->cache->clean(array(
+			NetteCache::ALL => true,
+		));
 
 		return TRUE;
 
