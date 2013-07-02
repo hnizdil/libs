@@ -1,11 +1,11 @@
 <?php
 
-namespace Hnizdil\Doctrine;
+namespace Hnizdil\Doctrine\Common\Cache;
 
-use Nette\Caching\Cache as NetteCache;
+use Nette\Caching\Cache as NCache;
 use Doctrine\Common\Cache\CacheProvider;
 
-class Cache
+class NetteCache
 	extends CacheProvider
 {
 
@@ -13,7 +13,7 @@ class Cache
 
 	private $data = array();
 
-	public function __construct(NetteCache $cache, $namespace) {
+	public function __construct(NCache $cache, $namespace) {
 
 		$this->cache = $cache->derive($namespace);
 
@@ -51,7 +51,7 @@ class Cache
 		$options = array();
 
 		if ($lifeTime !== 0) {
-			$options[NetteCache::EXPIRE] = $lifeTime;
+			$options[NCache::EXPIRE] = $lifeTime;
 		}
 
 		$this->cache->save($id, $data, $options);
@@ -77,7 +77,7 @@ class Cache
 	protected function doFlush() {
 
 		$this->cache->clean(array(
-			NetteCache::ALL => true,
+			NCache::ALL => true,
 		));
 
 		return TRUE;

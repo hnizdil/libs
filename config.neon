@@ -181,7 +181,7 @@ factories:
 
 	doctrineCache:
 		parameters: [namespace]
-		class: Hnizdil\Doctrine\Cache(
+		class: Hnizdil\Doctrine\Common\Cache\NetteCache(
 			@nette.cache(Doctrine)
 			%namespace%
 		)
