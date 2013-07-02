@@ -132,9 +132,8 @@ services:
 			- %templateDir%
 
 	wwwPathGetter:
+		# requires wwwDir and basePath from container->params
 		class: Hnizdil\Service\WwwPathGetter
-		arguments:
-			- %wwwDir%
 
 	businessDate:
 		class: Hnizdil\Service\BusinessDate

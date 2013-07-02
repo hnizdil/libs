@@ -2,16 +2,18 @@
 
 namespace Hnizdil\Service;
 
+use Nette\DI\Container;
+use Nette\Utils\Strings;
 use Hnizdil\Service\WwwPathGetterException as e;
 
 class WwwPathGetter
 {
 
-	private $wwwDir;
+	private $container;
 
-	public function __construct($wwwDir) {
+	public function __construct(Container $container) {
 
-		$this->wwwDir = $wwwDir;
+		$this->container = $container;
 
 	}
 
@@ -24,12 +26,21 @@ class WwwPathGetter
 			return null;
 		}
 
+		$wwwDir = $this->container->parameters['wwwDir'];
+
 		// path is not in WWW dir
-		if (mb_strpos($absolutePath, $this->wwwDir) !== 0) {
+		if (mb_strpos($absolutePath, $wwwDir) !== 0) {
 			e::notInWww($absolutePath);
 		}
 
-		return mb_substr($absolutePath, mb_strlen($this->wwwDir));
+		$substrStart = mb_strlen($wwwDir);
+
+		$basePath = rtrim($this->container->parameters['basePath'], '/');
+		if ($basePath !== '' && Strings::endsWith($wwwDir, $basePath)) {
+			$substrStart -= mb_strlen($basePath);
+		}
+
+		return mb_substr($absolutePath, $substrStart);
 
 	}
 
