@@ -15,6 +15,8 @@ abstract class BasePresenter
 		parent::startup();
 
 		Controls\DateInput::register();
+		Controls\FileUpload::register();
+		Controls\ImageUpload::register();
 		Controls\MoneyInput::register();
 		Controls\CheckboxList::register();
 		Controls\OpeningHours::register();

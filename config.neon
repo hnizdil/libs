@@ -23,6 +23,7 @@ parameters:
 		dataTypes:
 			money: Hnizdil\DBAL\MoneyType
 			file: Hnizdil\DBAL\FileType
+			image: Hnizdil\DBAL\ImageType
 			url: Hnizdil\DBAL\UrlType
 			email: Hnizdil\DBAL\EmailType
 			password: Hnizdil\DBAL\PasswordType

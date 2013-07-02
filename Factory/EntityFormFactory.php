@@ -379,12 +379,15 @@ class EntityFormFactory
 					$control = $fieldsContainer->addPassword($field);
 					$ruleFilled = $ruleFilled && !$editingExistingEntity;
 				}
-				elseif ($type instanceof \Hnizdil\DBAL\FileType) {
-					$control = $fieldsContainer->addUpload($field);
+				elseif ($type instanceof \Hnizdil\DBAL\FileType
+					|| $type instanceof \Hnizdil\DBAL\ImageType) {
+					$addFunction = $type instanceof \Hnizdil\DBAL\FileType
+						? 'addFileUpload'
+						: 'addImageUpload';
+					$control = $fieldsContainer->$addFunction($field);
 					$control->setOption('filename', $value);
 					if ($value && $formMeta['uploadDirParam']) {
-						$uploadDir = $this->container->expand(
-							"%{$formMeta['uploadDirParam']}%");
+						$uploadDir = $this->getUploadDir($formMeta);
 						$filePath = "{$uploadDir}/{$value}";
 						$wwwPath  = $this->wwwPathGetter->get($filePath);
 						$control->setOption('filePath', $filePath);
@@ -612,12 +615,14 @@ class EntityFormFactory
 
 		foreach ($values['fields'] as $field => $value) {
 
+			$control = $container['fields'][$field];
+
 			// případné zpracování uměle vytvořených políček
 			if (!isset($classMeta->fieldMappings[$field]) &&
 				!isset($classMeta->associationMappings[$field])
 			) {
 				$container->form->virtualField(
-					$entity, $field, $value, $container['fields'][$field]);
+					$entity, $field, $value, $control);
 				continue;
 			}
 
@@ -634,7 +639,7 @@ class EntityFormFactory
 				if ($inputMeta['editableEntity']) {
 					foreach ($value as $subContainerName => $_) {
 						$subEntity = $this->processEntityValues(
-							$container['fields'][$field][$subContainerName]);
+							$control[$subContainerName]);
 						$this->setAssoc($entity, $field, $subEntity);
 					}
 				}
@@ -727,22 +732,29 @@ class EntityFormFactory
 				}
 			}
 
-			if ($value instanceof FileUpload) {
+			if ($fieldMeta['type'] == 'file' || $fieldMeta['type'] == 'image') {
 				// soubor nahrajeme
-				if ($value->isOk()) {
+				if ($value['file']->isOk()) {
 					if ($inputMeta['uploadDirParam']) {
 						$this->uploads[] = array(
 							$inputMeta,
 							$field,
 							$entity,
-							clone $value,
+							clone $value['file'],
 						);
 						// jméno souboru bude nastaveno v $this->moveUploads()
-						$value = $entity->$field ? $entity->$field : 'dummy';
+						$value = $entity->$field ?: 'dummy';
 					}
 					else {
 						// o zpracování souboru se postará programátor
 					}
+				}
+				// soubor smažeme
+				elseif ($value['remove']) {
+					$filePath = $control->getOption('filePath');
+					@unlink($filePath);
+					@rmdir(dirname($filePath));
+					$value = null;
 				}
 				// soubor ignorujeme
 				else {
@@ -842,8 +854,7 @@ class EntityFormFactory
 			list($meta, $field, $entity, $upload) = $up;
 
 			// destination directory
-			$uploadDir =
-				$this->container->expand("%{$meta['uploadDirParam']}%");
+			$uploadDir = $this->getUploadDir($meta);
 
 			// remove previously uploaded file
 			$previousFilePath = $uploadDir . '/' . $entity->$field;
@@ -873,6 +884,12 @@ class EntityFormFactory
 		}
 
 		$this->em->flush();
+
+	}
+
+	protected function getUploadDir($meta) {
+
+		return $this->container->expand("%{$meta['uploadDirParam']}%");
 
 	}
 
