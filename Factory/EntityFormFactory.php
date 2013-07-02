@@ -597,7 +597,7 @@ class EntityFormFactory
 
 		$form->postDelete($entity, $form);
 
-		$form->presenter->redirect('list');
+		$form->presenter->redirect('default');
 
 	}
 
