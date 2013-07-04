@@ -88,7 +88,7 @@ class Input {
 	public $allowedValues = array();
 
 	/**
-	 * @var array<string>
+	 * @var string
 	 */
 	public $targetNameColsSeparator = ' – ';
 
