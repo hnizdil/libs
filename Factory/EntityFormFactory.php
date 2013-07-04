@@ -460,13 +460,21 @@ class EntityFormFactory
 		$form   = $button->form;
 		$entity = $this->processEntityValues($form);
 
-		$form->prePersist($entity, $form);
+		$formHasErrors = $form->hasErrors();
+
+		if (!$formHasErrors) {
+			$form->prePersist($entity, $form);
+			$formHasErrors = $formHasErrors || $form->hasErrors();
+		}
 
 		$em->persist($entity);
 
-		$form->preFlush($entity, $form);
+		if (!$formHasErrors) {
+			$form->preFlush($entity, $form);
+			$formHasErrors = $formHasErrors || $form->hasErrors();
+		}
 
-		if ($form->hasErrors()) {
+		if ($formHasErrors) {
 			return FALSE;
 		}
 
