@@ -95,19 +95,19 @@
 	{block tableheadercontent}
 		{if $column->isSortable()}
 			{if $column->getSorting() === NULL}
-				<a n:href="sort! $column->getName(), Gridito\Model\IModel::ASC">
+				<a class="ajax" n:href="sort! $column->getName(), Gridito\Model\IModel::ASC">
 					{$column->getLabel()}
 				</a>
 			{elseif $column->getSorting() === Gridito\Model\IModel::ASC}
-				<a n:href="sort! $column->getName(), Gridito\Model\IModel::DESC">
+				<a class="ajax" n:href="sort! $column->getName(), Gridito\Model\IModel::DESC">
 					{$column->getLabel()} ▲
 				</a>
 			{elseif $control->defaultSortColumn === $column->getName()}
-				<a n:href="sort! $column->getName(), Gridito\Model\IModel::ASC">
+				<a class="ajax" n:href="sort! $column->getName(), Gridito\Model\IModel::ASC">
 					{$column->getLabel()} ▼
 				</a>
 			{else}
-				<a n:href="sort! NULL, NULL">
+				<a class="ajax" n:href="sort! NULL, NULL">
 					{$column->getLabel()} ▼
 				</a>
 			{/if}

@@ -221,6 +221,10 @@ class Grid
 		ObjectMixin::set($from, $col, $dest->$col);
 		$em->flush($from);
 
+		if ($this->presenter->isAjax()) {
+			$this->invalidateControl();
+		}
+
 		$this->presenter->terminate();
 
 	}
