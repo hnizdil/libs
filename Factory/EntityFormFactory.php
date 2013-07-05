@@ -137,12 +137,14 @@ class EntityFormFactory
 							@$value[$container->name]
 							?: $assocMeta['targetEntity']);
 
-						// tlačítko pro odstranění kontejneru
-						$container->addSubmit('remove', 'Odstranit')
-							->setValidationScope(FALSE)
-							->onClick[] =
-							function (SubmitButton $button)
-							use ($form, $container, $em, $minCount) {
+						$removeCallback = function (
+								SubmitButton $button
+							) use (
+								$form,
+								$container,
+								$em,
+								$minCount
+							) {
 								$replicator = $container->parent;
 								// ověření minimálního počtu kontejnerů
 								$count = count($replicator->getContainers());
@@ -162,7 +164,17 @@ class EntityFormFactory
 								}
 								// odstranění kontejneru
 								$replicator->remove($container, TRUE);
+								// ajax
+								$presenter = $form->presenter;
+								if ($presenter->isAjax()) {
+									$presenter->invalidateControl('ajaxForm');
+								}
 							};
+
+						// tlačítko pro odstranění kontejneru
+						$container->addSubmit('remove', 'Odstranit')
+							->setValidationScope(FALSE)
+							->onClick[] = $removeCallback;
 
 					}, $subContainerCount);
 
@@ -170,20 +182,26 @@ class EntityFormFactory
 				$replicator->containerClass =
 					'\\Hnizdil\\Nette\\Forms\\EntityContainer';
 
+				$addCallback = function (SubmitButton $button) use ($maxCount) {
+					// ověření maximálního počtu kontejnerů
+					$count = count($button->parent->getContainers());
+					if ($maxCount && $count >= $maxCount) {
+						$button->addError('Nelze přidat další objekt');
+						return;
+					}
+					$container = $button->parent->createOne();
+					// ajax
+					$presenter = $button->form->presenter;
+					if ($presenter->isAjax()) {
+						$presenter->invalidateControl('ajaxForm');
+					}
+				};
+
 				// tlačítko pro přidání kontejneru
 				$replicator
 					->addSubmit('add', 'Přidat')
 					->setValidationScope(FALSE)
-					->onClick[] = function (SubmitButton $button)
-					use ($maxCount) {
-						// ověření maximálního počtu kontejnerů
-						$count = count($button->parent->getContainers());
-						if ($maxCount && $count >= $maxCount) {
-							$button->addError('Nelze přidat další objekt');
-							return;
-						}
-						$container = $button->parent->createOne();
-					};
+					->onClick[] = $addCallback;
 
 				$fieldsContainer->addComponent($replicator, $field);
 
