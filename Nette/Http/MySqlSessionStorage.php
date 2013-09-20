@@ -2,6 +2,7 @@
 
 namespace Hnizdil\Nette\Http;
 
+use mysqli;
 use Nette\Http\ISessionStorage;
 
 /*
@@ -35,7 +36,7 @@ class MySqlSessionStorage
 	 * a database connection resource
 	 * @var resource
 	 */
-	private $dbh;
+	private $mysqli;
 
 	public function __construct($host, $user, $pass, $db, $table) {
 
@@ -57,18 +58,20 @@ class MySqlSessionStorage
 		//error_log($savePath);
 		//error_log($sessionName);
 
-		$this->dbh = mysql_connect(
+		$this->mysqli = new mysqli(
 			$this->host,
 			$this->user,
-			$this->pass
+			$this->pass,
+			$this->db
 		);
 
-		if ($this->dbh) {
-			register_shutdown_function('session_write_close');
-			return mysql_select_db($this->db, $this->dbh);
+		if ($this->mysqli->connect_errno) {
+			throw new Exception($this->mysqli->connect_error);
 		}
 
-		return false;
+		register_shutdown_function('session_write_close');
+
+		return true;
 
 	}
 
@@ -78,7 +81,7 @@ class MySqlSessionStorage
 	 */
 	public function close() {
 
-		return mysql_close($this->dbh);
+		return $this->mysqli->close();
 
 	}
 
@@ -89,15 +92,18 @@ class MySqlSessionStorage
 	 */
 	public function read($id) {
 
-		$sql = sprintf("SELECT `data` FROM `%s` WHERE id = '%s'",
-			mysql_real_escape_string($this->table),
-			mysql_real_escape_string($id));
+		$stmt = $this->mysqli->prepare(
+			"SELECT `data` FROM `{$this->table}` WHERE id = ?");
 
-		if ($result = mysql_query($sql, $this->dbh)) {
-			if (mysql_num_rows($result)) {
-				$record = mysql_fetch_assoc($result);
-				return $record['data'];
-			}
+		$stmt->bind_param('s', $id);
+
+		$stmt->execute();
+		$stmt->store_result();
+
+		if ($stmt->num_rows) {
+			$stmt->bind_result($data);
+			$stmt->fetch();
+			return $data;
 		}
 
 		return '';
@@ -111,12 +117,12 @@ class MySqlSessionStorage
 	 */
 	public function write($id, $data) {
 
-		$sql = sprintf("REPLACE INTO `%s` (`id`, `data`) VALUES('%s', '%s')",
-			mysql_real_escape_string($this->table),
-			mysql_real_escape_string($id),
-			mysql_real_escape_string($data));
+		$stmt = $this->mysqli->prepare(
+			"REPLACE INTO `{$this->table}` (`id`, `data`) VALUES (?, ?)");
 
-		return mysql_query($sql, $this->dbh);
+		$stmt->bind_param('ss', $id, $data);
+
+		return $stmt->execute();
 
 	}
 
@@ -127,11 +133,12 @@ class MySqlSessionStorage
 	 */
 	public function remove($id) {
 
-		$sql = sprintf("DELETE FROM `%s` WHERE `id` = '%s'",
-			mysql_real_escape_string($this->table),
-			mysql_real_escape_string($id));
+		$stmt = $this->mysqli->prepare(
+			"DELETE FROM `{$this->table}` WHERE `id` = ?");
 
-		return mysql_query($sql, $this->dbh);
+		$stmt->bind_param('s', $id);
+
+		return $stmt->execute();
 
 	}
 
@@ -147,11 +154,12 @@ class MySqlSessionStorage
 	 */
 	public function clean($maxlifetime) {
 
-		$sql = sprintf("DELETE FROM `%s` WHERE `timestamp` < %d",
-			mysql_real_escape_string($this->table),
-			time() - $maxlifetime);
+		$stmt = $this->mysqli->prepare(
+			"DELETE FROM `{$this->table}` WHERE `timestamp` < ?");
 
-		return mysql_query($sql, $this->dbh);
+		$stmt->bind_param('i', time() - $maxlifetime);
+
+		return $stmt->execute();
 
 	}
 
