@@ -364,7 +364,7 @@ class EntityFormFactory
 				elseif ($type instanceof Types\TextType) {
 					$control = $fieldsContainer->addTextarea($field);
 					if ($formMeta['wysiwyg']) {
-						$control->getControlPrototype()->class('wysiwyg');
+						$control->getControlPrototype()->class[] = 'wysiwyg';
 					}
 				}
 				elseif ($type instanceof Types\BooleanType) {
