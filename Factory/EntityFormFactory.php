@@ -716,13 +716,33 @@ class EntityFormFactory
 
 			}
 
-			// boolean
-			if ($fieldMeta['type'] == 'boolean') {
-				switch ($value) {
-					case 0:  $value = FALSE; break;
-					case 1:  $value = TRUE;  break;
-					default: $value = NULL;  break;
-				}
+			switch ($fieldMeta['type']) {
+				case 'boolean':
+					switch ($value) {
+						case 0:  $value = FALSE; break;
+						case 1:  $value = TRUE;  break;
+						default: $value = NULL;  break;
+					}
+					break;
+				case 'bigint':
+				case 'integer':
+				case 'smallint':
+					if ($value === '') {
+						$value = null;
+					}
+					else {
+						$value = (int) $value;
+					}
+					break;
+				case 'float':
+				case 'decimal':
+					if ($value === '') {
+						$value = null;
+					}
+					else {
+						$value = (float) $value;
+					}
+					break;
 			}
 
 			// řazení entit
