@@ -41,7 +41,7 @@ class UploadRemoveEventSubscriber
 			$classMeta = $em->getClassMetadata(get_class($entity));
 
 			foreach ($classMeta->fieldMappings as $field => $fieldMeta) {
-				if ($fieldMeta['type'] !== 'file') {
+				if ($fieldMeta['type'] !== 'file' && $fieldMeta['type'] !== 'image') {
 					continue;
 				}
 
