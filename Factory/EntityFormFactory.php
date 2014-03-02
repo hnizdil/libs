@@ -415,7 +415,12 @@ class EntityFormFactory
 					$fieldMeta['length'] = NULL;
 				}
 				else {
-					$control = $fieldsContainer->addText($field);
+					if ($formMeta['forceTextarea']) {
+						$control = $fieldsContainer->addTextarea($field);
+					}
+					else {
+						$control = $fieldsContainer->addText($field);
+					}
 				}
 
 				if ($fieldMeta['length']) {

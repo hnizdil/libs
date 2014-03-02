@@ -78,6 +78,11 @@ class Input {
 	public $wysiwyg = FALSE;
 
 	/**
+	 * @var boolean
+	 */
+	public $forceTextarea = FALSE;
+
+	/**
 	 * @var array<string>
 	 */
 	public $targetNameCols = array();
