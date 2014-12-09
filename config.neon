@@ -95,6 +95,36 @@ services:
 			@doctrineCache(Annotations)
 		)
 
+	emNoCache:
+		factory: Doctrine\ORM\EntityManager::create
+		arguments:
+			- %database%
+			- @emConfigNoCache
+			- @eventManager
+
+	emConfigNoCache:
+		class: Doctrine\ORM\Configuration
+		setup:
+			- setProxyNamespace(Hnizdil\Proxy)
+			- setProxyDir(%doctrine.proxyDir%)
+			- setMetadataDriverImpl(@annotationDriverNoCache)
+			- setQueryCacheImpl(Doctrine\Common\Cache\ArrayCache())
+			- setMetadataCacheImpl(Doctrine\Common\Cache\ArrayCache())
+			- setAutoGenerateProxyClasses(%doctrine.autogenerateProxyClasses%)
+			- setClassMetadataFactoryName(%doctrine.classMetadataFactoryName%)
+
+	annotationDriverNoCache:
+		factory: Hnizdil\Doctrine\ORM\Mapping\Driver\AnnotationDriver(
+			@annotationReaderNoCache
+			%doctrine.entityDir%
+		)
+
+	annotationReaderNoCache:
+		factory: Hnizdil\Doctrine\AnnotationReaderFactory::create(
+			%libsDir%
+			Doctrine\Common\Cache\ArrayCache()
+		)
+
 	eventManager:
 		class: Doctrine\Common\EventManager
 		setup:

@@ -14,7 +14,9 @@ use Symfony\Component\Console\Formatter\OutputFormatter;
 
 require LIBS_DIR . '/Hnizdil/bootstrap.php';
 
-$databasePlatform = $container->em->getConnection()->getDatabasePlatform();
+$em = $container->emNoCache;
+
+$databasePlatform = $em->getConnection()->getDatabasePlatform();
 $databasePlatform->registerDoctrineTypeMapping('varbinary', 'string');
 $databasePlatform->registerDoctrineTypeMapping('binary',    'string');
 $databasePlatform->registerDoctrineTypeMapping('enum',      'string');
@@ -24,15 +26,15 @@ $cli = new Application('Doctrine Command Line Interface', Version::VERSION);
 $cli->setCatchExceptions(TRUE);
 
 $cli->setHelperSet(new HelperSet([
-	'em'     => new EntityManagerHelper($container->em),
-	'db'     => new ConnectionHelper($container->em->getConnection()),
+	'em'     => new EntityManagerHelper($em),
+	'db'     => new ConnectionHelper($em->getConnection()),
 	'dialog' => new DialogHelper,
 ]));
 
 ConsoleRunner::addCommands($cli);
 
 $config = new Configuration(
-	$container->em->getConnection(),
+	$em->getConnection(),
 	new OutputWriter(function($message) {
 		static $formatter = NULL;
 		if ($formatter === NULL) {
