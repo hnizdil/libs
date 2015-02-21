@@ -50,7 +50,7 @@ abstract class AbstractEntity
 
 		$this->checkIfPropertyExists($property);
 
-		$this->$property = ctype_digit($value) ? (int)$value : NULL;
+		$this->$property = ctype_digit("{$value}") ? (int)$value : NULL;
 
 	}
 
