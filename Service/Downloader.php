@@ -19,6 +19,8 @@ class Downloader
 			CURLOPT_FAILONERROR    => true,
 			CURLOPT_AUTOREFERER    => true,
 			CURLOPT_USERAGENT      => self::USER_AGENT,
+			CURLOPT_SSL_VERIFYPEER => true,
+			CURLOPT_CAINFO         => __DIR__ . '/cacert.pem',
 		));
 
 		$result = $this->curlExecFollow($ch);
