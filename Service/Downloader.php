@@ -25,14 +25,19 @@ class Downloader
 
 		$fp = fopen($path, 'w');
 
-		$this->runCurl(array(
+		$result = $this->runCurl(array(
 			CURLOPT_URL            => $url,
 			CURLOPT_FILE           => $fp,
 			CURLOPT_TIMEOUT        => 30,
 			CURLOPT_CONNECTTIMEOUT => 30,
 		));
 
+		$position = ftell($fp);
 		fclose($fp);
+
+		if ($position === 0 && $result) {
+			file_put_contents($path, $result);
+		}
 
 		return $path;
 	}
