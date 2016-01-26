@@ -8,20 +8,45 @@ class Downloader
 	const USER_AGENT = 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; .NET CLR 1.1.4322)';
 
 	public function fetch($url) {
+		return $this->runCurl(array(
+			CURLOPT_URL            => $url,
+			CURLOPT_TIMEOUT        => 5,
+			CURLOPT_CONNECTTIMEOUT => 5,
+			CURLOPT_RETURNTRANSFER => true,
+		));
+	}
 
+	public function download($url, $destinationDir) {
+		if (!is_dir($destinationDir)) {
+			mkdir($destinationDir, 0777, true);
+		}
+
+		$path = $destinationDir . '/' . basename($url);
+
+		$fp = fopen($path, 'w');
+
+		$this->runCurl(array(
+			CURLOPT_URL            => $url,
+			CURLOPT_FILE           => $fp,
+			CURLOPT_TIMEOUT        => 30,
+			CURLOPT_CONNECTTIMEOUT => 30,
+		));
+
+		fclose($fp);
+
+		return $path;
+	}
+
+	protected function runCurl(array $options) {
 		$ch = curl_init();
 
 		curl_setopt_array($ch, array(
-			CURLOPT_URL            => $url,
-			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_TIMEOUT        => 5,
-			CURLOPT_CONNECTTIMEOUT => 5,
 			CURLOPT_FAILONERROR    => true,
 			CURLOPT_AUTOREFERER    => true,
 			CURLOPT_USERAGENT      => self::USER_AGENT,
 			CURLOPT_SSL_VERIFYPEER => true,
 			CURLOPT_CAINFO         => __DIR__ . '/cacert.pem',
-		));
+		) + $options);
 
 		$result = $this->curlExecFollow($ch);
 
