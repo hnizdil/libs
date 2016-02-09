@@ -58,7 +58,7 @@ $getConfigurator = function ($section) {
 	$configurator = new Configurator;
 	$configurator->setDebugMode($section !== 'production');
 	$configurator->setTempDirectory($tempDirPath);
-	$configurator->enableDebugger($logDir, 'hnizdil@gmail.com');
+	$configurator->enableDebugger($logDir);
 	$configurator->addParameters(array(
 		'appDir'  => APP_DIR,
 		'wwwDir'  => WWW_DIR,
